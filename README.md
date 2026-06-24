@@ -61,3 +61,4 @@ You can access the interactive API documentation (Swagger UI) at `http://localho
 - **Async First**: Non-blocking asynchronous endpoints and database queries utilizing Asyncpg.
 - **Strict Typing**: Type safety using Python type hints and Pydantic validation.
 - **Pre-configured Auth**: Ready-to-use JWT-based authentication system.
+# laptop_market
