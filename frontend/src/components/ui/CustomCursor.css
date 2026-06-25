@@ -1,0 +1,23 @@
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  pointer-events: none; /* Make sure it doesn't block clicks */
+  z-index: 9999;
+  mix-blend-mode: screen;
+  border: 2px solid rgba(139, 92, 246, 0.8);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+}
+
+/* Hide default cursor to make custom cursor shine */
+body {
+  cursor: none;
+}
+
+/* Ensure interactive elements also hide default cursor or show custom pointer */
+a, button, input, .laptop-card {
+  cursor: none !important;
+}
