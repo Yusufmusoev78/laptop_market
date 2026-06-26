@@ -19,3 +19,8 @@ export const getLaptops = async (): Promise<Laptop[]> => {
   const response = await apiClient.get('/laptops/');
   return response.data;
 };
+
+export const getLaptopById = async (id: number): Promise<Laptop> => {
+  const response = await apiClient.get(`/laptops/${id}`);
+  return response.data;
+};

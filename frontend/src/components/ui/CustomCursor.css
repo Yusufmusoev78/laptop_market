@@ -1,23 +1,73 @@
-.custom-cursor {
+@media (pointer: fine) {
+  body { cursor: none; }
+  *, *::before, *::after { cursor: none !important; }
+}
+
+/* ── Dot — sharp precise point ───────────────────────────── */
+.cursor-dot {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 32px;
-  height: 32px;
+  top: -5px; left: -5px;
+  width: 10px; height: 10px;
   border-radius: 50%;
-  pointer-events: none; /* Make sure it doesn't block clicks */
-  z-index: 9999;
+  background: rgba(99, 102, 241, 1);
+  pointer-events: none;
+  z-index: 10001;
+  box-shadow:
+    0 0 6px rgba(99,102,241,0.8),
+    0 0 14px rgba(99,102,241,0.4);
+  will-change: transform;
+}
+
+/* ── Ring — follows with spring lag ─────────────────────── */
+.cursor-ring {
+  position: fixed;
+  top: -20px; left: -20px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(99, 102, 241, 0.85);
+  pointer-events: none;
+  z-index: 10000;
+  will-change: transform;
+  box-shadow:
+    0 0 12px rgba(99,102,241,0.25),
+    inset 0 0 8px rgba(99,102,241,0.06);
+}
+
+/* ── Background spotlight — huge, behind all content ────── */
+.cursor-bg-spotlight {
+  position: fixed;
+  top: -300px; left: -300px;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(99,102,241,0.13)  0%,
+    rgba(139,92,246,0.07) 35%,
+    rgba(67,56,202,0.03)  60%,
+    transparent           75%
+  );
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
   mix-blend-mode: screen;
-  border: 2px solid rgba(139, 92, 246, 0.8);
-  box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
 }
 
-/* Hide default cursor to make custom cursor shine */
-body {
-  cursor: none;
-}
-
-/* Ensure interactive elements also hide default cursor or show custom pointer */
-a, button, input, .laptop-card {
-  cursor: none !important;
+/* ── Glow — large ambient blur ───────────────────────────── */
+.cursor-glow {
+  position: fixed;
+  top: -60px; left: -60px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(99,102,241,0.35) 0%,
+    rgba(139,92,246,0.15) 45%,
+    transparent 70%
+  );
+  filter: blur(16px);
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform;
+  mix-blend-mode: screen;
 }

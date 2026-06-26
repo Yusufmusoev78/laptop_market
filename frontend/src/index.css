@@ -1,63 +1,144 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@500;600;700;800;900&display=swap');
 
-:root {
-  /* Colors */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --accent-primary: #3b82f6;
-  --accent-secondary: #8b5cf6;
-  --accent-gradient: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  --danger: #ef4444;
-  --success: #22c55e;
-  
-  /* Borders and Glass */
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  
-  /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+/* ── Dark theme (default) ────────────────────────────────── */
+:root, [data-theme="dark"] {
+  --bg-base:    #0c0a1a;
+  --bg-card:    #141228;
+  --bg-surface: #191636;
+  --bg-hover:   #201d40;
+
+  --text-primary:   #eeecff;
+  --text-secondary: #9e9cbf;
+  --text-muted:     #5c5a78;
+
+  --primary:        #6366f1;
+  --primary-hover:  #4f46e5;
+  --primary-dark:   #4338ca;
+  --primary-light:  rgba(99, 102, 241, 0.13);
+  --primary-glow:   rgba(99, 102, 241, 0.28);
+
+  --gradient-brand: linear-gradient(120deg, #4338ca 0%, #6366f1 50%, #8b5cf6 100%);
+  --gradient-hero:  linear-gradient(180deg, #1e1b4b 0%, #27215a 45%, #0c0a1a 100%);
+
+  --gold:        #f59e0b;
+  --gold-bright: #fbbf24;
+  --success:     #22c55e;
+  --danger:      #ef4444;
+  --warning:     #f59e0b;
+
+  --border:         rgba(255, 255, 255, 0.07);
+  --border-strong:  rgba(255, 255, 255, 0.14);
+  --border-primary: rgba(99, 102, 241, 0.4);
+
+  --shadow-sm:   0 2px 8px rgba(0,0,0,0.35);
+  --shadow-card: 0 0 0 1px rgba(255,255,255,0.04), 0 6px 28px rgba(0,0,0,0.45);
+  --shadow-glow: 0 0 0 1px rgba(99,102,241,0.22), 0 8px 40px rgba(99,102,241,0.18), 0 20px 60px rgba(0,0,0,0.5);
+
+  --nav-bg: rgba(12, 10, 26, 0.92);
+  --nav-border: rgba(255, 255, 255, 0.07);
+  --search-bg: rgba(255, 255, 255, 0.05);
+  --icon-btn-bg: rgba(255, 255, 255, 0.04);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ── Light theme ─────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-base:    #f4f3ff;
+  --bg-card:    #ffffff;
+  --bg-surface: #eeeeff;
+  --bg-hover:   #e2e0ff;
+
+  --text-primary:   #1a1729;
+  --text-secondary: #4a4875;
+  --text-muted:     #8a87ab;
+
+  --primary:        #4f46e5;
+  --primary-hover:  #4338ca;
+  --primary-dark:   #3730a3;
+  --primary-light:  rgba(79, 70, 229, 0.1);
+  --primary-glow:   rgba(79, 70, 229, 0.2);
+
+  --gradient-brand: linear-gradient(120deg, #3730a3 0%, #4f46e5 50%, #7c3aed 100%);
+
+  --border:         rgba(0, 0, 0, 0.08);
+  --border-strong:  rgba(0, 0, 0, 0.14);
+  --border-primary: rgba(79, 70, 229, 0.35);
+
+  --shadow-card: 0 0 0 1px rgba(0,0,0,0.05), 0 4px 20px rgba(0,0,0,0.07);
+  --shadow-glow: 0 0 0 1px rgba(79,70,229,0.18), 0 8px 32px rgba(79,70,229,0.12), 0 20px 48px rgba(0,0,0,0.07);
+
+  --nav-bg: rgba(248, 247, 255, 0.94);
+  --nav-border: rgba(0, 0, 0, 0.07);
+  --search-bg: rgba(0, 0, 0, 0.04);
+  --icon-btn-bg: rgba(0, 0, 0, 0.04);
 }
+
+/* ── Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
 body {
-  font-family: var(--font-sans);
-  background-color: var(--bg-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-base);
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  background-image: radial-gradient(rgba(99,102,241,0.05) 1px, transparent 1px);
+  background-size: 26px 26px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-18px) scale(1.04); }
+}
+@keyframes orbPulse {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+  33%       { transform: translate(28px, -18px) scale(1.08); opacity: 1; }
+  66%       { transform: translate(-18px, 14px) scale(0.93); opacity: 0.6; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes heroPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(1.06); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
-  100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+.animate-fade-in { animation: fadeInUp 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Utilities ───────────────────────────────────────────── */
+.text-gradient {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-/* Base Glassmorphism Class */
 .glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  background: rgba(20, 18, 40, 0.8);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border);
   border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Typography ──────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: 'Sora', 'Inter', sans-serif;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin-bottom: 0.6rem;
 }
