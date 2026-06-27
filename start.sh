@@ -22,6 +22,23 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# ── 0. Free up ports from any previous run ────────────────────────────────────
+# Re-running this script while an old instance is still alive used to make
+# react-scripts silently jump to port 5174+, which the backend's CORS
+# allowlist doesn't know about → "Connection error" in the browser.
+free_port() {
+    local port="$1"
+    local pid
+    pid=$(ss -tlnp 2>/dev/null | grep ":$port " | grep -oP 'pid=\K[0-9]+' | head -1)
+    if [ -n "$pid" ]; then
+        warn "Port $port already in use (pid $pid from a previous run) — stopping it."
+        kill "$pid" 2>/dev/null || true
+        sleep 1
+    fi
+}
+free_port 8000
+free_port 5173
+
 # ── 1. Check venv ─────────────────────────────────────────────────────────────
 [ -f "$SCRIPT_DIR/venv/bin/activate" ] || error "Virtual environment not found. Run: python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
 source "$SCRIPT_DIR/venv/bin/activate"
