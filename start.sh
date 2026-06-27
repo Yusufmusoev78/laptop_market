@@ -59,7 +59,7 @@ python scripts/seed.py
 
 # ── 5. Start FastAPI backend (background) ────────────────────────────────────
 info "Starting FastAPI backend on http://localhost:8000 ..."
-uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload > /tmp/somon_backend.log 2>&1 &
+uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir "$SCRIPT_DIR/src" > /tmp/somon_backend.log 2>&1 &
 BACKEND_PID=$!
 
 # Wait until the backend is accepting connections (max 15 s)
