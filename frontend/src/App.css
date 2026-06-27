@@ -527,24 +527,29 @@ main {
   position: relative; z-index: 0;
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: 20px; padding: 1.75rem;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  backdrop-filter: blur(0px);
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s, backdrop-filter 0.3s, background 0.3s;
 }
 .feature-card:hover {
   border-color: var(--border-primary);
   box-shadow: 0 8px 32px rgba(99,102,241,0.12);
   transform: translateY(-3px);
+  background: rgba(99,102,241,0.05);
+  backdrop-filter: blur(10px);
 }
+[data-theme="light"] .feature-card:hover { background: rgba(79,70,229,0.04); }
+
+/* Soft static glow blur behind the card on hover (no spin, no rotation) */
 .feature-card::before {
   content: '';
-  position: absolute; inset: -2px;
+  position: absolute; inset: -8px;
   border-radius: inherit; z-index: -1;
   opacity: 0;
-  background: conic-gradient(from 0deg, #4338ca, #6366f1, #8b5cf6, #6366f1, #4338ca);
-  filter: blur(8px);
-  transition: opacity 0.25s ease;
-  animation: btnGlowSpin 4s linear infinite;
+  background: var(--gradient-brand);
+  filter: blur(22px);
+  transition: opacity 0.3s ease;
 }
-.feature-card:hover::before { opacity: 0.6; }
+.feature-card:hover::before { opacity: 0.35; }
 .feature-icon-wrap {
   width: 46px; height: 46px; border-radius: 12px;
   background: var(--primary-light); border: 1px solid rgba(99,102,241,0.2);

@@ -21,27 +21,22 @@
   box-shadow: 0 8px 28px rgba(99,102,241,0.5);
 }
 
-/* Rotating gradient border-glow ring on hover */
+/* Soft static glow blur behind the button on hover (no spin, no rotation) */
 .btn-primary {
   position: relative;
   z-index: 0;
 }
 .btn-primary::before {
   content: '';
-  position: absolute; inset: -2px;
+  position: absolute; inset: -6px;
   border-radius: inherit;
   z-index: -1;
   opacity: 0;
-  background: conic-gradient(from 0deg, #4338ca, #6366f1, #8b5cf6, #6366f1, #4338ca);
-  filter: blur(6px);
-  transition: opacity 0.25s ease;
-  animation: btnGlowSpin 3s linear infinite;
+  background: var(--gradient-brand);
+  filter: blur(14px);
+  transition: opacity 0.3s ease;
 }
-.btn-primary:hover::before { opacity: 0.85; }
-
-@keyframes btnGlowSpin {
-  to { transform: rotate(360deg); }
-}
+.btn-primary:hover::before { opacity: 0.55; }
 
 /* Glass */
 .btn-glass {

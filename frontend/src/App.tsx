@@ -6,7 +6,6 @@ import { Footer } from './components/layout/Footer';
 import { Home } from './pages/Home';
 import { Catalog } from './pages/Catalog';
 import { LaptopDetail } from './pages/LaptopDetail';
-import { CustomCursor } from './components/ui/CustomCursor';
 import './App.css';
 
 function App() {
@@ -14,7 +13,6 @@ function App() {
     <LanguageProvider>
       <ThemeProvider>
         <BrowserRouter>
-          <CustomCursor />
           <div className="app-container">
             <Navbar />
             <main>
