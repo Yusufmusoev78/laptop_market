@@ -6,14 +6,31 @@
   border-radius: 20px;
   box-shadow: var(--shadow-card);
   overflow: hidden;
-  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1),
-              border-color 0.22s, box-shadow 0.22s;
+  position: relative;
+  will-change: transform;
+  transition: border-color 0.22s, box-shadow 0.22s;
 }
 .laptop-card:hover {
-  transform: translateY(-6px);
   border-color: var(--border-primary);
   box-shadow: var(--shadow-glow);
 }
+
+/* Spotlight sheen that follows the cursor — driven by --spot-x/--spot-y set in JS */
+.laptop-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  z-index: 5; pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: radial-gradient(
+    circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(99,102,241,0.16) 0%,
+    rgba(139,92,246,0.06) 35%,
+    transparent 65%
+  );
+}
+.laptop-card:hover::before { opacity: 1; }
 
 /* ── Image area ──────────────────────────────────────────── */
 .card-image-area {

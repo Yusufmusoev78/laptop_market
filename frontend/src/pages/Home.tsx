@@ -3,6 +3,7 @@ import { useNavigate, NavLink } from 'react-router-dom';
 import { Truck, ShieldCheck, Coins, ArrowRight } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { LaptopCard } from '../components/ui/LaptopCard';
+import { Aurora } from '../components/ui/Aurora';
 import { getLaptops, Laptop } from '../api/laptops';
 import { useLang } from '../context/LanguageContext';
 
@@ -40,6 +41,7 @@ export const Home: React.FC = () => {
       {/* ── Hero ── */}
       <section style={{ position: 'relative', overflow: 'hidden', margin: '0 -1.5rem' }}>
         <div className="hero-bg">
+          <Aurora amplitude={1.1} colorStops={['#4338ca', '#6366f1', '#8b5cf6']} />
           <div className="hero-orb hero-orb-1" />
           <div className="hero-orb hero-orb-2" />
           <div className="hero-orb hero-orb-3" />

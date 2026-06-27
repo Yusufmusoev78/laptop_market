@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion, useSpring, useMotionValue } from 'framer-motion';
+import { PixelTrail } from './PixelTrail';
 import './CustomCursor.css';
 
 export const CustomCursor: React.FC = () => {
@@ -69,6 +70,9 @@ export const CustomCursor: React.FC = () => {
         }}
         transition={{ type: 'spring', damping: 18, stiffness: 120 }}
       />
+
+      {/* ── Pixel trail (lights up cells under the raw cursor path) ── */}
+      <PixelTrail mx={mx} my={my} />
 
       {/* ── Glow layer (heaviest lag) ── */}
       <motion.div

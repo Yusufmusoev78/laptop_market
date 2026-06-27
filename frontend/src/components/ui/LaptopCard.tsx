@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { Cpu, HardDrive, MemoryStick, Zap, ShoppingCart } from 'lucide-react';
 import { Laptop as LaptopType } from '../../api/laptops';
 import { getLaptopImageThumb } from '../../utils/laptopImages';
@@ -14,12 +15,39 @@ interface LaptopCardProps {
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
 
+const TILT_MAX_DEG = 6;
+
 export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
   const navigate = useNavigate();
   const { t } = useLang();
   const inStock = laptop.stock_quantity > 0;
   const [imgError, setImgError] = useState(false);
   const imgSrc = getLaptopImageThumb(laptop.brand, laptop.model_name);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const rawRotateX = useMotionValue(0);
+  const rawRotateY = useMotionValue(0);
+  const rotateX = useSpring(rawRotateX, { damping: 20, stiffness: 200 });
+  const rotateY = useSpring(rawRotateY, { damping: 20, stiffness: 200 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    const cx = px / rect.width - 0.5;
+    const cy = py / rect.height - 0.5;
+    rawRotateY.set(cx * TILT_MAX_DEG * 2);
+    rawRotateX.set(-cy * TILT_MAX_DEG * 2);
+    card.style.setProperty('--spot-x', `${px}px`);
+    card.style.setProperty('--spot-y', `${py}px`);
+  };
+
+  const handleMouseLeave = () => {
+    rawRotateX.set(0);
+    rawRotateY.set(0);
+  };
 
   const goToDetail = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.card-buy-btn')) return;
@@ -27,7 +55,16 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
   };
 
   return (
-    <div className="laptop-card" onClick={goToDetail} style={{ cursor: 'pointer' }}>
+    <motion.div
+      ref={cardRef}
+      className="laptop-card"
+      onClick={goToDetail}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ cursor: 'pointer', rotateX, rotateY, transformPerspective: 800 }}
+      whileHover={{ y: -6, scale: 1.015 }}
+      transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+    >
       {/* ── Image area ── */}
       <div className="card-image-area">
         <span className="laptop-brand-badge">{laptop.brand}</span>
@@ -85,6 +122,6 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
           {inStock ? t('buy') : t('outOfStock')}
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };

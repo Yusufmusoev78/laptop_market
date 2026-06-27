@@ -378,6 +378,13 @@ main {
   background: linear-gradient(180deg, #ddd8ff 0%, #ede9ff 50%, #f4f3ff 100%);
 }
 
+.aurora-canvas-wrap {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  opacity: 0.8; mix-blend-mode: screen;
+}
+.aurora-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+[data-theme="light"] .aurora-canvas-wrap { opacity: 0.35; mix-blend-mode: multiply; }
+
 .hero-orb {
   position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none;
 }
@@ -517,6 +524,7 @@ main {
 
 /* ── Feature cards ───────────────────────────────────────── */
 .feature-card {
+  position: relative; z-index: 0;
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: 20px; padding: 1.75rem;
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
@@ -526,6 +534,17 @@ main {
   box-shadow: 0 8px 32px rgba(99,102,241,0.12);
   transform: translateY(-3px);
 }
+.feature-card::before {
+  content: '';
+  position: absolute; inset: -2px;
+  border-radius: inherit; z-index: -1;
+  opacity: 0;
+  background: conic-gradient(from 0deg, #4338ca, #6366f1, #8b5cf6, #6366f1, #4338ca);
+  filter: blur(8px);
+  transition: opacity 0.25s ease;
+  animation: btnGlowSpin 4s linear infinite;
+}
+.feature-card:hover::before { opacity: 0.6; }
 .feature-icon-wrap {
   width: 46px; height: 46px; border-radius: 12px;
   background: var(--primary-light); border: 1px solid rgba(99,102,241,0.2);
