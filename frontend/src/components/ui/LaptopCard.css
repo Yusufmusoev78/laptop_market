@@ -50,22 +50,54 @@
     linear-gradient(160deg, #e8e6ff 0%, #f0eeff 100%);
 }
 
-/* Real photo */
+/* Real photos — stacked, cross-faded on hover cycle */
 .card-photo {
+  position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+  transition: opacity 0.5s ease, transform 0.35s cubic-bezier(0.22,1,0.36,1);
+  z-index: 1;
 }
 .laptop-card:hover .card-photo { transform: scale(1.05); }
 
 .card-photo-fallback {
+  position: absolute; inset: 0; z-index: 0;
   font-size: 3.5rem;
   display: flex; align-items: center; justify-content: center;
   width: 100%; height: 100%;
 }
 
+/* Photo count badge (bottom-left) */
+.card-photo-count {
+  position: absolute; bottom: 0.7rem; left: 0.75rem; z-index: 3;
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  background: rgba(12,10,26,0.7); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 0.14rem 0.5rem; border-radius: 20px;
+  font-size: 0.66rem; font-weight: 700; color: #fff;
+}
+.card-photo-count svg { opacity: 0.85; }
+[data-theme="light"] .card-photo-count {
+  background: rgba(255,255,255,0.8); color: var(--text-primary);
+  border-color: rgba(0,0,0,0.08);
+}
+
+/* Dot indicators (bottom-center) */
+.card-photo-dots {
+  position: absolute; bottom: 0.7rem; left: 50%; transform: translateX(-50%);
+  z-index: 3; display: flex; gap: 4px;
+}
+.card-photo-dot {
+  width: 14px; height: 4px; border-radius: 4px;
+  background: rgba(255,255,255,0.35);
+  transition: background 0.3s, width 0.3s;
+}
+.card-photo-dot.active {
+  background: #fff; width: 18px;
+}
+
 /* ── Badges ──────────────────────────────────────────────── */
 .laptop-brand-badge {
-  position: absolute; top: 0.75rem; left: 0.75rem;
+  position: absolute; top: 0.75rem; left: 0.75rem; z-index: 4;
   background: rgba(12,10,26,0.75); backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,0.09);
   padding: 0.18rem 0.6rem; border-radius: 20px;
@@ -78,7 +110,7 @@
 }
 
 .hot-badge {
-  position: absolute; top: 0.75rem; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 0.75rem; left: 50%; transform: translateX(-50%); z-index: 4;
   background: linear-gradient(120deg, #ef4444, #f97316);
   border-radius: 20px;
   padding: 0.18rem 0.7rem;
@@ -89,7 +121,7 @@
 }
 
 .stock-badge {
-  position: absolute; top: 0.75rem; right: 0.75rem;
+  position: absolute; top: 0.75rem; right: 0.75rem; z-index: 4;
   padding: 0.18rem 0.6rem; border-radius: 20px;
   font-size: 0.68rem; font-weight: 600;
 }

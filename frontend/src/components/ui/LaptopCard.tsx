@@ -1,9 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
-import { Cpu, HardDrive, MemoryStick, Zap, ShoppingCart } from 'lucide-react';
+import { Cpu, HardDrive, MemoryStick, Zap, ShoppingCart, Image as ImageIcon } from 'lucide-react';
 import { Laptop as LaptopType } from '../../api/laptops';
-import { getLaptopImageThumb } from '../../utils/laptopImages';
+import { getLaptopGallery } from '../../utils/laptopImages';
 import { useLang } from '../../context/LanguageContext';
 import './LaptopCard.css';
 
@@ -16,14 +16,35 @@ const fmt = (n: number) =>
   new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
 
 const TILT_MAX_DEG = 6;
+const CYCLE_MS = 850;
 
 export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
   const navigate = useNavigate();
   const { t } = useLang();
   const inStock = laptop.stock_quantity > 0;
-  const [imgError, setImgError] = useState(false);
-  const imgSrc = getLaptopImageThumb(laptop.brand, laptop.model_name);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const gallery = useMemo(
+    () => getLaptopGallery(laptop.brand, laptop.model_name, 400),
+    [laptop.brand, laptop.model_name],
+  );
+
+  const [active, setActive] = useState(0);
+  const [broken, setBroken] = useState<Set<number>>(new Set());
+  const cycleRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopCycle = () => {
+    if (cycleRef.current) { clearInterval(cycleRef.current); cycleRef.current = null; }
+  };
+
+  const startCycle = () => {
+    if (gallery.length < 2 || cycleRef.current) return;
+    cycleRef.current = setInterval(() => {
+      setActive(prev => (prev + 1) % gallery.length);
+    }, CYCLE_MS);
+  };
+
+  useEffect(() => stopCycle, []);
 
   const rawRotateX = useMotionValue(0);
   const rawRotateY = useMotionValue(0);
@@ -44,7 +65,11 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
     card.style.setProperty('--spot-y', `${py}px`);
   };
 
+  const handleMouseEnter = () => startCycle();
+
   const handleMouseLeave = () => {
+    stopCycle();
+    setActive(0);
     rawRotateX.set(0);
     rawRotateY.set(0);
   };
@@ -54,12 +79,15 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
     navigate(`/catalog/${laptop.id}`);
   };
 
+  const allBroken = broken.size >= gallery.length;
+
   return (
     <motion.div
       ref={cardRef}
       className="laptop-card"
       onClick={goToDetail}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ cursor: 'pointer', rotateX, rotateY, transformPerspective: 800 }}
       whileHover={{ y: -6, scale: 1.015 }}
@@ -67,6 +95,22 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
     >
       {/* ── Image area ── */}
       <div className="card-image-area">
+        {/* Fallback base layer (shows if every photo fails to load) */}
+        <div className="card-photo-fallback">💻</div>
+
+        {/* Stacked gallery — only the active one is opaque */}
+        {gallery.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt={`${laptop.brand} ${laptop.model_name} — ${i + 1}`}
+            className="card-photo"
+            style={{ opacity: !broken.has(i) && i === active ? 1 : 0 }}
+            onError={() => setBroken(prev => new Set(prev).add(i))}
+            loading="lazy"
+          />
+        ))}
+
         <span className="laptop-brand-badge">{laptop.brand}</span>
 
         {isHot && <span className="hot-badge">🔥 HOT</span>}
@@ -75,16 +119,20 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
           {inStock ? `${laptop.stock_quantity} ${t('inStock')}` : t('outOfStock')}
         </div>
 
-        {!imgError ? (
-          <img
-            src={imgSrc}
-            alt={`${laptop.brand} ${laptop.model_name}`}
-            className="card-photo"
-            onError={() => setImgError(true)}
-            loading="lazy"
-          />
-        ) : (
-          <div className="card-photo-fallback">💻</div>
+        {/* Photo count badge */}
+        {gallery.length > 1 && !allBroken && (
+          <span className="card-photo-count">
+            <ImageIcon size={12} />{gallery.length}
+          </span>
+        )}
+
+        {/* Dot indicators */}
+        {gallery.length > 1 && !allBroken && (
+          <div className="card-photo-dots">
+            {gallery.map((_, i) => (
+              <span key={i} className={`card-photo-dot ${i === active ? 'active' : ''}`} />
+            ))}
+          </div>
         )}
       </div>
 
