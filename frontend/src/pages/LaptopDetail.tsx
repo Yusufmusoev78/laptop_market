@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Cpu, HardDrive, MemoryStick, Zap, ShieldCheck, Keyboard, ShoppingCart, ArrowLeft, Package } from 'lucide-react';
 import { getLaptops, Laptop } from '../api/laptops';
-import { getLaptopImage } from '../utils/laptopImages';
+import { getLaptopGallery } from '../utils/laptopImages';
 import { LaptopCard } from '../components/ui/LaptopCard';
 import { useLang } from '../context/LanguageContext';
 import './LaptopDetail.css';
@@ -19,7 +19,8 @@ export const LaptopDetail: React.FC = () => {
   const [laptop,   setLaptop]   = useState<Laptop | null>(null);
   const [related,  setRelated]  = useState<Laptop[]>([]);
   const [loading,  setLoading]  = useState(true);
-  const [imgError, setImgError] = useState(false);
+  const [activeImg, setActiveImg] = useState(0);
+  const [broken,   setBroken]   = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const numId = parseInt(id ?? '');
@@ -38,6 +39,11 @@ export const LaptopDetail: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id, navigate]);
 
+  const gallery = useMemo(
+    () => laptop ? getLaptopGallery(laptop.brand, laptop.model_name, 800) : [],
+    [laptop],
+  );
+
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
       <div className="spinner" />
@@ -46,7 +52,7 @@ export const LaptopDetail: React.FC = () => {
 
   if (!laptop) return null;
 
-  const imgSrc = getLaptopImage(laptop.brand, laptop.model_name);
+  const allBroken = broken.size >= gallery.length;
   const inStock = laptop.stock_quantity > 0;
 
   const specs = [
@@ -75,16 +81,22 @@ export const LaptopDetail: React.FC = () => {
       {/* Main card */}
       <div className="detail-main">
 
-        {/* Left — image */}
+        {/* Left — image gallery */}
         <div className="detail-image-wrap">
           <div className="detail-image-container">
-            {!imgError ? (
-              <img
-                src={imgSrc}
-                alt={`${laptop.brand} ${laptop.model_name}`}
-                className="detail-image"
-                onError={() => setImgError(true)}
-              />
+            {!allBroken ? (
+              <>
+                {gallery.map((src, i) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt={`${laptop.brand} ${laptop.model_name} — ${i + 1}`}
+                    className="detail-image"
+                    style={{ opacity: !broken.has(i) && i === activeImg ? 1 : 0 }}
+                    onError={() => setBroken(prev => new Set(prev).add(i))}
+                  />
+                ))}
+              </>
             ) : (
               <div className="detail-image-fallback">
                 <span style={{ fontSize: '5rem' }}>💻</span>
@@ -92,6 +104,24 @@ export const LaptopDetail: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Thumbnail strip */}
+          {!allBroken && gallery.length > 1 && (
+            <div className="detail-thumbs">
+              {gallery.map((src, i) => (
+                broken.has(i) ? null : (
+                  <button
+                    key={src}
+                    className={`detail-thumb ${i === activeImg ? 'active' : ''}`}
+                    onClick={() => setActiveImg(i)}
+                    aria-label={`Photo ${i + 1}`}
+                  >
+                    <img src={src} alt="" loading="lazy" />
+                  </button>
+                )
+              ))}
+            </div>
+          )}
 
           {/* Brand + stock */}
           <div className="detail-image-badges">
