@@ -11,7 +11,7 @@ class OrderRepository(BaseRepository[Order, OrderCreate, OrderUpdate]):
         query = (
             select(Order)
             .where(Order.user_id == user_id)
-            .options(selectinload(Order.laptop))
+            .options(selectinload(Order.laptop), selectinload(Order.phone))
             .order_by(Order.created_at.desc())
         )
         result = await db.execute(query)
@@ -20,7 +20,7 @@ class OrderRepository(BaseRepository[Order, OrderCreate, OrderUpdate]):
     async def get_all_with_relations(self, db: AsyncSession, *, skip: int = 0, limit: int = 100) -> List[Order]:
         query = (
             select(Order)
-            .options(selectinload(Order.laptop), selectinload(Order.user))
+            .options(selectinload(Order.laptop), selectinload(Order.phone), selectinload(Order.user))
             .offset(skip)
             .limit(limit)
             .order_by(Order.created_at.desc())
@@ -32,7 +32,7 @@ class OrderRepository(BaseRepository[Order, OrderCreate, OrderUpdate]):
         query = (
             select(Order)
             .where(Order.id == order_id)
-            .options(selectinload(Order.laptop), selectinload(Order.user))
+            .options(selectinload(Order.laptop), selectinload(Order.phone), selectinload(Order.user))
         )
         result = await db.execute(query)
         return result.scalar_one_or_none()

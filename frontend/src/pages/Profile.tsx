@@ -1,21 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, BarChart3, Mail, Building2, Laptop, Package, Plus, Phone, ShoppingCart } from 'lucide-react';
+import { LogOut, BarChart3, Mail, Building2, Laptop, Package, Plus, Phone, ShoppingCart, Smartphone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
+import { useMarket } from '../context/MarketContext';
 import { Button } from '../components/ui/Button';
 import { LaptopCard } from '../components/ui/LaptopCard';
+import { PhoneCard } from '../components/ui/PhoneCard';
 import { createLaptop, getMyLaptops, recordSale, Laptop as LaptopType, LaptopCreateInput } from '../api/laptops';
+import { createPhone, getMyPhones, recordPhoneSale, Phone as PhoneType, PhoneCreateInput } from '../api/phones';
 import { updateProfile, ProfileUpdateInput } from '../api/auth';
 import { getMyBrands, Brand } from '../api/brands';
 import { getMyOrders, Order } from '../api/orders';
 import './Profile.css';
 
-const emptyForm: Omit<LaptopCreateInput, 'brand_id'> = {
+const emptyLaptopForm: Omit<LaptopCreateInput, 'brand_id'> = {
   model_name: '', cpu: '', gpu: '',
   ram_gb: 8, storage_gb: 256, price_tjs: 0, stock_quantity: 1,
   keyboard_layout: 'English/Cyrillic', warranty_months: 12, description: '',
+};
+
+const emptyPhoneForm: Omit<PhoneCreateInput, 'brand_id'> = {
+  model_name: '', cpu: '',
+  ram_gb: 8, storage_gb: 256, screen_size_inches: 6.7, battery_capacity_mah: 5000,
+  color: '', price_tjs: 0, stock_quantity: 1,
+  warranty_months: 12, description: '',
 };
 
 const sectionVariants = {
@@ -26,13 +36,18 @@ const sectionVariants = {
 export const Profile: React.FC = () => {
   const { user, logout, refreshUser } = useAuth();
   const { t } = useLang();
+  const { marketMode } = useMarket();
   const navigate = useNavigate();
 
   const [myLaptops, setMyLaptops] = useState<LaptopType[]>([]);
+  const [myPhones, setMyPhones] = useState<PhoneType[]>([]);
   const [loadingListings, setLoadingListings] = useState(true);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loadingBrands, setLoadingBrands] = useState(true);
-  const [form, setForm] = useState<LaptopCreateInput>({ ...emptyForm, brand_id: 0 });
+  
+  const [form, setForm] = useState<LaptopCreateInput>({ ...emptyLaptopForm, brand_id: 0 });
+  const [phoneForm, setPhoneForm] = useState<PhoneCreateInput>({ ...emptyPhoneForm, brand_id: 0 });
+  
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -52,7 +67,14 @@ export const Profile: React.FC = () => {
 
   useEffect(() => {
     getMyLaptops().then(setMyLaptops).catch(() => {}).finally(() => setLoadingListings(false));
-    getMyBrands().then(setBrands).catch(() => {}).finally(() => setLoadingBrands(false));
+    getMyPhones().then(setMyPhones).catch(() => {});
+    getMyBrands().then(list => {
+      setBrands(list);
+      if (list.length > 0) {
+        setForm(f => ({ ...f, brand_id: list[0].id }));
+        setPhoneForm(f => ({ ...f, brand_id: list[0].id }));
+      }
+    }).catch(() => {}).finally(() => setLoadingBrands(false));
     getMyOrders().then(setOrders).catch(() => {}).finally(() => setLoadingOrders(false));
   }, []);
 
@@ -93,15 +115,28 @@ export const Profile: React.FC = () => {
     setForm(f => ({ ...f, [field]: type === 'number' || field === 'brand_id' ? Number(value) : value }));
   };
 
+  const handlePhoneChange = (field: keyof PhoneCreateInput) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { value, type } = e.target;
+    setPhoneForm(f => ({ ...f, [field]: type === 'number' || field === 'brand_id' ? Number(value) : value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
     setSubmitting(true);
     try {
-      const created = await createLaptop(form);
-      setMyLaptops(prev => [created, ...prev]);
-      setForm({ ...emptyForm, brand_id: brands[0]?.id ?? 0 });
+      if (marketMode === 'laptop') {
+        const created = await createLaptop(form);
+        setMyLaptops(prev => [created, ...prev]);
+        setForm({ ...emptyLaptopForm, brand_id: brands[0]?.id ?? 0 });
+      } else {
+        const created = await createPhone(phoneForm);
+        setMyPhones(prev => [created, ...prev]);
+        setPhoneForm({ ...emptyPhoneForm, brand_id: brands[0]?.id ?? 0 });
+      }
       setSuccess(true);
     } catch {
       setError(t('listingFailed'));
@@ -110,7 +145,7 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const handleRecordSale = async (laptop: LaptopType) => {
+  const handleRecordSaleLaptop = async (laptop: LaptopType) => {
     const quantity = saleQuantities[laptop.id] ?? 1;
     setSaleBusyId(laptop.id);
     setSaleMessage(null);
@@ -120,6 +155,21 @@ export const Profile: React.FC = () => {
       setSaleMessage({ id: laptop.id, text: t('saleRecorded') });
     } catch {
       setSaleMessage({ id: laptop.id, text: t('saleRecordFailed') });
+    } finally {
+      setSaleBusyId(null);
+    }
+  };
+
+  const handleRecordSalePhone = async (phone: PhoneType) => {
+    const quantity = saleQuantities[phone.id] ?? 1;
+    setSaleBusyId(phone.id);
+    setSaleMessage(null);
+    try {
+      const updated = await recordPhoneSale(phone.id, quantity);
+      setMyPhones(prev => prev.map(p => (p.id === phone.id ? updated : p)));
+      setSaleMessage({ id: phone.id, text: t('saleRecorded') });
+    } catch {
+      setSaleMessage({ id: phone.id, text: t('saleRecordFailed') });
     } finally {
       setSaleBusyId(null);
     }
@@ -261,108 +311,206 @@ export const Profile: React.FC = () => {
       </motion.div>
 
       <motion.div className="profile-section" initial="hidden" animate="show" custom={3} variants={sectionVariants}>
-        <h2 className="profile-section-title"><Laptop size={16} /> {t('addLaptopListing')}</h2>
+        <h2 className="profile-section-title">
+          {marketMode === 'laptop' ? <Laptop size={16} /> : <Smartphone size={16} />}
+          {' '}
+          {marketMode === 'laptop' ? t('addLaptopListing') : t('addPhoneListing')}
+        </h2>
 
         {success && <div className="listing-success">{t('listingAdded')}</div>}
         {error && <div className="listing-error">{error}</div>}
 
         {!loadingBrands && brands.length === 0 && (
           <div className="profile-empty">
-            <Laptop size={26} />
+            {marketMode === 'laptop' ? <Laptop size={26} /> : <Smartphone size={26} />}
             <p>{t('registerBrandFirst')}</p>
           </div>
         )}
 
         {brands.length > 0 && (
-        <form onSubmit={handleSubmit}>
-          <div className="listing-form-grid">
-            <div className="listing-form-field">
-              <label htmlFor="f-brand">{t('selectBrand')}</label>
-              <select id="f-brand" required value={form.brand_id} onChange={handleChange('brand_id')}>
-                <option value={0} disabled>{t('selectBrand')}</option>
-                {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-model">{t('modelNameLabel')}</label>
-              <input id="f-model" required value={form.model_name} onChange={handleChange('model_name')} />
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-cpu">{t('cpuLabel')}</label>
-              <input id="f-cpu" required value={form.cpu} onChange={handleChange('cpu')} />
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-gpu">{t('gpuLabel')}</label>
-              <input id="f-gpu" value={form.gpu} onChange={handleChange('gpu')} />
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-ram">{t('ramLabel')}</label>
-              <input id="f-ram" type="number" min={1} required value={form.ram_gb} onChange={handleChange('ram_gb')} />
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-storage">{t('storageLabel')}</label>
-              <input id="f-storage" type="number" min={1} required value={form.storage_gb} onChange={handleChange('storage_gb')} />
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-price">{t('priceLabel')}</label>
-              <input id="f-price" type="number" min={1} required value={form.price_tjs} onChange={handleChange('price_tjs')} />
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-stock">{t('stockLabel')}</label>
-              <input id="f-stock" type="number" min={0} required value={form.stock_quantity} onChange={handleChange('stock_quantity')} />
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-warranty">{t('warrantyMonthsLabel')}</label>
-              <input id="f-warranty" type="number" min={0} required value={form.warranty_months} onChange={handleChange('warranty_months')} />
-            </div>
-            <div className="listing-form-field">
-              <label htmlFor="f-kb">{t('keyboardLayoutLabel')}</label>
-              <input id="f-kb" required value={form.keyboard_layout} onChange={handleChange('keyboard_layout')} />
-            </div>
-            <div className="listing-form-field full-width">
-              <label htmlFor="f-desc">{t('descriptionOptional')}</label>
-              <textarea id="f-desc" value={form.description} onChange={handleChange('description')} />
-            </div>
-          </div>
+          <form onSubmit={handleSubmit}>
+            {marketMode === 'laptop' ? (
+              <div className="listing-form-grid">
+                <div className="listing-form-field">
+                  <label htmlFor="f-brand">{t('selectBrand')}</label>
+                  <select id="f-brand" required value={form.brand_id} onChange={handleChange('brand_id')}>
+                    <option value={0} disabled>{t('selectBrand')}</option>
+                    {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-model">{t('modelNameLabel')}</label>
+                  <input id="f-model" required value={form.model_name} onChange={handleChange('model_name')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-cpu">{t('cpuLabel')}</label>
+                  <input id="f-cpu" required value={form.cpu} onChange={handleChange('cpu')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-gpu">{t('gpuLabel')}</label>
+                  <input id="f-gpu" value={form.gpu} onChange={handleChange('gpu')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-ram">{t('ramLabel')}</label>
+                  <input id="f-ram" type="number" min={1} required value={form.ram_gb} onChange={handleChange('ram_gb')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-storage">{t('storageLabel')}</label>
+                  <input id="f-storage" type="number" min={1} required value={form.storage_gb} onChange={handleChange('storage_gb')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-price">{t('priceLabel')}</label>
+                  <input id="f-price" type="number" min={1} required value={form.price_tjs} onChange={handleChange('price_tjs')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-stock">{t('stockLabel')}</label>
+                  <input id="f-stock" type="number" min={0} required value={form.stock_quantity} onChange={handleChange('stock_quantity')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-warranty">{t('warrantyMonthsLabel')}</label>
+                  <input id="f-warranty" type="number" min={0} required value={form.warranty_months} onChange={handleChange('warranty_months')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="f-kb">{t('keyboardLayoutLabel')}</label>
+                  <input id="f-kb" required value={form.keyboard_layout} onChange={handleChange('keyboard_layout')} />
+                </div>
+                <div className="listing-form-field full-width">
+                  <label htmlFor="f-desc">{t('descriptionOptional')}</label>
+                  <textarea id="f-desc" value={form.description} onChange={handleChange('description')} />
+                </div>
+              </div>
+            ) : (
+              <div className="listing-form-grid">
+                <div className="listing-form-field">
+                  <label htmlFor="p-brand">{t('selectBrand')}</label>
+                  <select id="p-brand" required value={phoneForm.brand_id} onChange={handlePhoneChange('brand_id')}>
+                    <option value={0} disabled>{t('selectBrand')}</option>
+                    {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-model">{t('modelNameLabel')}</label>
+                  <input id="p-model" required value={phoneForm.model_name} onChange={handlePhoneChange('model_name')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-cpu">{t('cpuLabel')}</label>
+                  <input id="p-cpu" required value={phoneForm.cpu} onChange={handlePhoneChange('cpu')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-color">{t('colorLabel')}</label>
+                  <input id="p-color" required value={phoneForm.color} onChange={handlePhoneChange('color')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-ram">{t('ramLabel')}</label>
+                  <input id="p-ram" type="number" min={1} required value={phoneForm.ram_gb} onChange={handlePhoneChange('ram_gb')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-storage">{t('storageLabel')}</label>
+                  <input id="p-storage" type="number" min={1} required value={phoneForm.storage_gb} onChange={handlePhoneChange('storage_gb')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-screen">{t('screenSizeLabel')}</label>
+                  <input id="p-screen" type="number" step="0.01" min={1} required value={phoneForm.screen_size_inches} onChange={handlePhoneChange('screen_size_inches')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-battery">{t('batteryCapacityLabel')}</label>
+                  <input id="p-battery" type="number" min={1} required value={phoneForm.battery_capacity_mah} onChange={handlePhoneChange('battery_capacity_mah')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-price">{t('priceLabel')}</label>
+                  <input id="p-price" type="number" min={1} required value={phoneForm.price_tjs} onChange={handlePhoneChange('price_tjs')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-stock">{t('stockLabel')}</label>
+                  <input id="p-stock" type="number" min={0} required value={phoneForm.stock_quantity} onChange={handlePhoneChange('stock_quantity')} />
+                </div>
+                <div className="listing-form-field">
+                  <label htmlFor="p-warranty">{t('warrantyMonthsLabel')}</label>
+                  <input id="p-warranty" type="number" min={0} required value={phoneForm.warranty_months} onChange={handlePhoneChange('warranty_months')} />
+                </div>
+                <div className="listing-form-field full-width">
+                  <label htmlFor="p-desc">{t('descriptionOptional')}</label>
+                  <textarea id="p-desc" value={phoneForm.description} onChange={handlePhoneChange('description')} />
+                </div>
+              </div>
+            )}
 
-          <Button type="submit" className="listing-form-submit" isLoading={submitting}>
-            {t('submitListing')}
-          </Button>
-        </form>
+            <Button type="submit" className="listing-form-submit" isLoading={submitting}>
+              {marketMode === 'laptop' ? t('submitListing') : (lang === 'tj' ? 'Иловаи телефон' : lang === 'ru' ? 'Добавить телефон' : 'Add Phone')}
+            </Button>
+          </form>
         )}
       </motion.div>
 
       <motion.div className="profile-section" initial="hidden" animate="show" custom={4} variants={sectionVariants}>
         <h2 className="profile-section-title"><Package size={16} /> {t('myListings')}</h2>
-        {!loadingListings && myLaptops.length === 0 && (
-          <div className="profile-empty">
-            <Package size={26} />
-            <p>{t('noListingsYet')}</p>
-          </div>
-        )}
-        {myLaptops.length > 0 && (
-          <div className="my-listings-grid">
-            {myLaptops.map(l => (
-              <div key={l.id} className="my-listing-item">
-                <LaptopCard laptop={l} />
-                <div className="record-sale-row">
-                  <input
-                    type="number" min={1} max={l.stock_quantity || undefined}
-                    value={saleQuantities[l.id] ?? 1}
-                    onChange={e => setSaleQuantities(q => ({ ...q, [l.id]: Number(e.target.value) }))}
-                    aria-label={t('quantityLabel')}
-                  />
-                  <Button
-                    size="sm" variant="outline" disabled={saleBusyId === l.id || l.stock_quantity <= 0}
-                    onClick={() => handleRecordSale(l)}
-                  >
-                    {t('recordSale')}
-                  </Button>
-                </div>
-                {saleMessage?.id === l.id && <span className="sale-message">{saleMessage.text}</span>}
+        
+        {marketMode === 'laptop' ? (
+          <>
+            {!loadingListings && myLaptops.length === 0 && (
+              <div className="profile-empty">
+                <Package size={26} />
+                <p>{t('noListingsYet')}</p>
               </div>
-            ))}
-          </div>
+            )}
+            {myLaptops.length > 0 && (
+              <div className="my-listings-grid">
+                {myLaptops.map(l => (
+                  <div key={l.id} className="my-listing-item">
+                    <LaptopCard laptop={l} />
+                    <div className="record-sale-row">
+                      <input
+                        type="number" min={1} max={l.stock_quantity || undefined}
+                        value={saleQuantities[l.id] ?? 1}
+                        onChange={e => setSaleQuantities(q => ({ ...q, [l.id]: Number(e.target.value) }))}
+                        aria-label={t('quantityLabel')}
+                      />
+                      <Button
+                        size="sm" variant="outline" disabled={saleBusyId === l.id || l.stock_quantity <= 0}
+                        onClick={() => handleRecordSaleLaptop(l)}
+                      >
+                        {t('recordSale')}
+                      </Button>
+                    </div>
+                    {saleMessage?.id === l.id && <span className="sale-message">{saleMessage.text}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {!loadingListings && myPhones.length === 0 && (
+              <div className="profile-empty">
+                <Package size={26} />
+                <p>{t('noListingsYet')}</p>
+              </div>
+            )}
+            {myPhones.length > 0 && (
+              <div className="my-listings-grid">
+                {myPhones.map(p => (
+                  <div key={p.id} className="my-listing-item">
+                    <PhoneCard phone={p} />
+                    <div className="record-sale-row">
+                      <input
+                        type="number" min={1} max={p.stock_quantity || undefined}
+                        value={saleQuantities[p.id] ?? 1}
+                        onChange={e => setSaleQuantities(q => ({ ...q, [p.id]: Number(e.target.value) }))}
+                        aria-label={t('quantityLabel')}
+                      />
+                      <Button
+                        size="sm" variant="outline" disabled={saleBusyId === p.id || p.stock_quantity <= 0}
+                        onClick={() => handleRecordSalePhone(p)}
+                      >
+                        {t('recordSale')}
+                      </Button>
+                    </div>
+                    {saleMessage?.id === p.id && <span className="sale-message">{saleMessage.text}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </motion.div>
 
@@ -383,7 +531,7 @@ export const Profile: React.FC = () => {
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
                   <th style={{ padding: '0.75rem' }}>{t('orderNumber')}</th>
-                  <th style={{ padding: '0.75rem' }}>{t('laptopWord')}</th>
+                  <th style={{ padding: '0.75rem' }}>{lang === 'tj' ? 'Маҳсулот' : lang === 'ru' ? 'Товар' : 'Product'}</th>
                   <th style={{ padding: '0.75rem' }}>{t('orderDate')}</th>
                   <th style={{ padding: '0.75rem' }}>{t('paymentMethod')}</th>
                   <th style={{ padding: '0.75rem' }}>{t('installmentPlan')}</th>
@@ -398,7 +546,11 @@ export const Profile: React.FC = () => {
                     <td style={{ padding: '0.75rem' }}>
                       {o.laptop ? (
                         <Link to={`/catalog/${o.laptop.id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
-                          {o.laptop.brand} {o.laptop.model_name}
+                          💻 {o.laptop.brand} {o.laptop.model_name}
+                        </Link>
+                      ) : o.phone ? (
+                        <Link to={`/catalog/phone/${o.phone.id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+                          📱 {o.phone.brand} {o.phone.model_name}
                         </Link>
                       ) : (
                         '—'

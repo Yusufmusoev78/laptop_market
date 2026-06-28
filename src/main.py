@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 import os
 from src.core.config import settings
 from src.api.dependencies import get_current_admin_user
-from src.api.routes import users, laptops, admin, brands, stats, orders
+from src.api.routes import users, laptops, phones, admin, brands, stats, orders
 from src.api import ws
 
 app = FastAPI(
@@ -24,6 +24,7 @@ app.add_middleware(
 
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
 app.include_router(laptops.router, prefix=f"{settings.API_V1_STR}/laptops", tags=["laptops"])
+app.include_router(phones.router, prefix=f"{settings.API_V1_STR}/phones", tags=["phones"])
 app.include_router(brands.router, prefix=f"{settings.API_V1_STR}/brands", tags=["brands"])
 app.include_router(stats.router, prefix=f"{settings.API_V1_STR}/stats", tags=["stats"])
 app.include_router(orders.router, prefix=f"{settings.API_V1_STR}/orders", tags=["orders"])

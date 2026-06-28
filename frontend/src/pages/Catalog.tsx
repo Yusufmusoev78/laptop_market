@@ -3,19 +3,34 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, Camera, Loader, Sparkles, Check, X } from 'lucide-react';
 import { getLaptops, Laptop } from '../api/laptops';
+import { getPhones, Phone } from '../api/phones';
 import { LaptopCard } from '../components/ui/LaptopCard';
+import { PhoneCard } from '../components/ui/PhoneCard';
 import { useLang } from '../context/LanguageContext';
+import { useMarket } from '../context/MarketContext';
 import { Button } from '../components/ui/Button';
 
-const BRANDS  = ['All', 'ASUS', 'Lenovo', 'HP', 'Dell', 'Apple', 'Acer', 'MSI', 'Samsung'];
-const PRICES  = [
+const LAPTOP_BRANDS = ['All', 'ASUS', 'Lenovo', 'HP', 'Dell', 'Apple', 'Acer', 'MSI'];
+const PHONE_BRANDS = ['All', 'Apple', 'Samsung', 'Xiaomi'];
+
+const LAPTOP_PRICES = [
   { en: 'All prices',     min: 0,     max: Infinity },
   { en: 'Under 6,000',   min: 0,     max: 6000     },
   { en: '6,000–12,000',  min: 6000,  max: 12000    },
   { en: '12,000–20,000', min: 12000, max: 20000    },
   { en: 'Over 20,000',   min: 20000, max: Infinity  },
 ];
-const RAM_OPTS = ['All', '8 GB', '16 GB', '32 GB'];
+
+const PHONE_PRICES = [
+  { en: 'All prices',     min: 0,     max: Infinity },
+  { en: 'Under 4,000',   min: 0,     max: 4000     },
+  { en: '4,000–8,000',   min: 4000,  max: 8000     },
+  { en: '8,000–12,000',  min: 8000,  max: 12000    },
+  { en: 'Over 12,000',   min: 12000, max: Infinity  },
+];
+
+const LAPTOP_RAM = ['All', '8 GB', '16 GB', '32 GB'];
+const PHONE_RAM = ['All', '4 GB', '8 GB', '12 GB'];
 
 const cardVariants = {
   hidden: { opacity: 0, y: 22 },
@@ -25,15 +40,16 @@ const cardVariants = {
 export const Catalog: React.FC = () => {
   const [searchParams] = useSearchParams();
   const qParam = searchParams.get('q') || '';
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const { marketMode } = useMarket();
 
-  const [laptops,     setLaptops]    = useState<Laptop[]>([]);
-  const [loading,     setLoading]    = useState(true);
-  const [error,       setError]      = useState<string | null>(null);
-  const [brand,       setBrand]      = useState('All');
-  const [priceIdx,    setPriceIdx]   = useState(0);
-  const [ram,         setRam]        = useState('All');
-  const [search,      setSearch]     = useState(qParam);
+  const [products, setProducts] = useState<(Laptop | Phone)[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [brand, setBrand] = useState('All');
+  const [priceIdx, setPriceIdx] = useState(0);
+  const [ram, setRam] = useState('All');
+  const [search, setSearch] = useState(qParam);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // AI Visual Search States
@@ -41,6 +57,10 @@ export const Catalog: React.FC = () => {
   const [scanningImage, setScanningImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
+
+  const brands = marketMode === 'laptop' ? LAPTOP_BRANDS : PHONE_BRANDS;
+  const prices = marketMode === 'laptop' ? LAPTOP_PRICES : PHONE_PRICES;
+  const ramOpts = marketMode === 'laptop' ? LAPTOP_RAM : PHONE_RAM;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -56,19 +76,33 @@ export const Catalog: React.FC = () => {
       setTimeout(() => {
         const name = file.name.toLowerCase();
         let matchedBrand = 'ASUS';
-        if (name.includes('mac') || name.includes('apple') || name.includes('mbp')) {
-          matchedBrand = 'Apple';
-        } else if (name.includes('lenovo') || name.includes('legion') || name.includes('thinkpad')) {
-          matchedBrand = 'Lenovo';
-        } else if (name.includes('hp') || name.includes('pavilion') || name.includes('envy')) {
-          matchedBrand = 'HP';
-        } else if (name.includes('dell') || name.includes('xps') || name.includes('latitude')) {
-          matchedBrand = 'Dell';
-        } else if (name.includes('msi') || name.includes('stealth') || name.includes('pulse')) {
-          matchedBrand = 'MSI';
+        if (marketMode === 'laptop') {
+          if (name.includes('mac') || name.includes('apple') || name.includes('mbp')) {
+            matchedBrand = 'Apple';
+          } else if (name.includes('lenovo') || name.includes('legion') || name.includes('thinkpad')) {
+            matchedBrand = 'Lenovo';
+          } else if (name.includes('hp') || name.includes('pavilion') || name.includes('envy')) {
+            matchedBrand = 'HP';
+          } else if (name.includes('dell') || name.includes('xps') || name.includes('latitude')) {
+            matchedBrand = 'Dell';
+          } else if (name.includes('msi') || name.includes('stealth') || name.includes('pulse')) {
+            matchedBrand = 'MSI';
+          } else {
+            const brandsInStock = ['ASUS', 'Lenovo', 'HP', 'Apple', 'MSI'];
+            matchedBrand = brandsInStock[Math.floor(Math.random() * brandsInStock.length)];
+          }
         } else {
-          const brandsInStock = ['ASUS', 'Lenovo', 'HP', 'Apple', 'MSI'];
-          matchedBrand = brandsInStock[Math.floor(Math.random() * brandsInStock.length)];
+          // Phone mode
+          if (name.includes('iphone') || name.includes('apple') || name.includes('ios')) {
+            matchedBrand = 'Apple';
+          } else if (name.includes('galaxy') || name.includes('samsung') || name.includes('ultra')) {
+            matchedBrand = 'Samsung';
+          } else if (name.includes('xiaomi') || name.includes('redmi') || name.includes('mi')) {
+            matchedBrand = 'Xiaomi';
+          } else {
+            const phoneBrandsInStock = ['Apple', 'Samsung', 'Xiaomi'];
+            matchedBrand = phoneBrandsInStock[Math.floor(Math.random() * phoneBrandsInStock.length)];
+          }
         }
 
         setScanResult(matchedBrand);
@@ -87,79 +121,90 @@ export const Catalog: React.FC = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const { lang } = useLang();
-
   useEffect(() => {
-    getLaptops()
-      .then(setLaptops)
-      .catch(() => setError('Could not load laptops. Is the backend running?'))
-      .finally(() => setLoading(false));
-  }, []);
+    setLoading(true);
+    setBrand('All');
+    setPriceIdx(0);
+    setRam('All');
+    setSearch(qParam);
 
-  useEffect(() => { if (qParam) setSearch(qParam); }, [qParam]);
+    if (marketMode === 'laptop') {
+      getLaptops()
+        .then(setProducts)
+        .catch(() => setError('Could not load laptops. Is the backend running?'))
+        .finally(() => setLoading(false));
+    } else {
+      getPhones()
+        .then(setProducts)
+        .catch(() => setError('Could not load phones. Is the backend running?'))
+        .finally(() => setLoading(false));
+    }
+  }, [marketMode, qParam]);
 
-  const filtered = useMemo(() => laptops.filter(l => {
-    const pr = PRICES[priceIdx];
+  const filtered = useMemo(() => products.filter(l => {
+    const pr = prices[priceIdx];
     const q  = search.toLowerCase();
-    const matchSearch = !q || [l.brand, l.model_name, l.cpu, l.gpu ?? '']
-      .some(s => s.toLowerCase().includes(q));
+    
+    const searchFields = [l.brand, l.model_name, l.cpu];
+    if ('gpu' in l && l.gpu) searchFields.push(l.gpu);
+    if ('color' in l && l.color) searchFields.push(l.color);
+
+    const matchSearch = !q || searchFields.some(s => s && s.toLowerCase().includes(q));
+    
     return (brand === 'All' || l.brand === brand)
         && (l.price_tjs >= pr.min && l.price_tjs < pr.max)
         && (ram === 'All' || l.ram_gb === parseInt(ram))
         && matchSearch;
-  }), [laptops, brand, priceIdx, ram, search]);
+  }), [products, brand, priceIdx, ram, search, prices]);
 
   const recommendations = useMemo(() => {
-    if (filtered.length > 0 || laptops.length === 0) return [];
+    if (filtered.length > 0 || products.length === 0) return [];
 
     const isHighPriceSelected = priceIdx >= 3;
     const isLowPriceSelected = priceIdx === 1 || priceIdx === 2;
 
-    return [...laptops]
+    return [...products]
       .map(l => {
         let score = 0;
-        // Brand similarity
         if (brand !== 'All' && l.brand === brand) score += 15;
-        // RAM similarity
         if (ram !== 'All' && l.ram_gb === parseInt(ram)) score += 8;
         
-        // Price similarity
-        const pr = PRICES[priceIdx];
+        const pr = prices[priceIdx];
         if (priceIdx !== 0) {
           if (l.price_tjs >= pr.min && l.price_tjs < pr.max) {
             score += 10;
           } else {
-            // Penalty based on distance to range limit
             const distance = l.price_tjs < pr.min ? pr.min - l.price_tjs : l.price_tjs - pr.max;
             score -= distance / 1000;
           }
         }
         
-        // Search keyword similarity
         if (search) {
           const q = search.toLowerCase();
-          const matchSearch = [l.brand, l.model_name, l.cpu, l.gpu ?? '']
-            .some(s => s.toLowerCase().includes(q));
+          const searchFields = [l.brand, l.model_name, l.cpu];
+          if ('gpu' in l && l.gpu) searchFields.push(l.gpu);
+          if ('color' in l && l.color) searchFields.push(l.color);
+          const matchSearch = searchFields.some(s => s && s.toLowerCase().includes(q));
           if (matchSearch) score += 5;
         }
 
-        return { laptop: l, score };
+        return { item: l, score };
       })
       .sort((a, b) => {
         if (Math.abs(a.score - b.score) > 0.1) {
           return b.score - a.score;
         }
         if (isHighPriceSelected) {
-          return b.laptop.price_tjs - a.laptop.price_tjs;
+          return b.item.price_tjs - a.item.price_tjs;
         }
         if (isLowPriceSelected) {
-          return a.laptop.price_tjs - b.laptop.price_tjs;
+          return a.item.price_tjs - b.item.price_tjs;
         }
-        return b.laptop.price_tjs - a.laptop.price_tjs;
+        return b.item.price_tjs - a.item.price_tjs;
       })
-      .map(x => x.laptop)
+      .map(x => x.item)
       .slice(0, 4);
-  }, [laptops, filtered, brand, priceIdx, ram, search]);
+  }, [products, filtered, brand, priceIdx, ram, search, prices]);
 
   const hasFilter = brand !== 'All' || priceIdx !== 0 || ram !== 'All' || !!search;
   const resetFilters = () => { setBrand('All'); setPriceIdx(0); setRam('All'); setSearch(''); };
@@ -180,7 +225,8 @@ export const Catalog: React.FC = () => {
     <div className="animate-fade-in" style={{ paddingTop:'2rem' }}>
       <div className="page-header">
         <h1 style={{ fontSize:'clamp(1.8rem,3.5vw,2.6rem)' }}>
-          {t('laptopCatalog')} <span className="text-gradient">{t('catalogSuffix')}</span>
+          {marketMode === 'laptop' ? t('laptopCatalog') : t('phoneCatalog')}{' '}
+          <span className="text-gradient">{t('catalogSuffix')}</span>
         </h1>
       </div>
 
@@ -190,7 +236,7 @@ export const Catalog: React.FC = () => {
             <input
               type="text" value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder={t('searchPlaceholder')}
+              placeholder={marketMode === 'laptop' ? t('searchPlaceholder') : (lang === 'tj' ? 'Ҷустуҷӯи телефонҳо бо бренд, модел ё ранг...' : lang === 'ru' ? 'Поиск телефонов по бренду, модели или цвету...' : 'Search phones by brand, model or color...')}
               className="catalog-search-input"
               style={{ paddingRight: '2.8rem' }}
             />
@@ -218,7 +264,7 @@ export const Catalog: React.FC = () => {
             />
           </div>
           <p className="catalog-search-count">
-            {filtered.length} {t('laptopWord')} {t('found')}
+            {filtered.length} {marketMode === 'laptop' ? t('laptopWord') : t('phoneWord')} {t('found')}
           </p>
         </div>
       </div>
@@ -244,14 +290,14 @@ export const Catalog: React.FC = () => {
 
           <div className="sidebar-section">
             <span className="sidebar-label">{t('brand')}</span>
-            {BRANDS.map(b => (
+            {brands.map(b => (
               <button key={b} className={`filter-btn ${brand === b ? 'active' : ''}`} onClick={() => setBrand(b)}>{b}</button>
             ))}
           </div>
 
           <div className="sidebar-section">
             <span className="sidebar-label">{t('priceInTJS')}</span>
-            {PRICES.map((p, i) => (
+            {prices.map((p, i) => (
               <button key={p.en} className={`filter-btn ${priceIdx === i ? 'active' : ''}`} onClick={() => setPriceIdx(i)}>
                 {p.en}
               </button>
@@ -260,7 +306,7 @@ export const Catalog: React.FC = () => {
 
           <div className="sidebar-section">
             <span className="sidebar-label">{t('ram')}</span>
-            {RAM_OPTS.map(r => (
+            {ramOpts.map(r => (
               <button key={r} className={`filter-btn ${ram === r ? 'active' : ''}`} onClick={() => setRam(r)}>{r}</button>
             ))}
           </div>
@@ -278,7 +324,9 @@ export const Catalog: React.FC = () => {
           {filtered.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               <div style={{ textAlign:'center', padding:'3rem 2rem', color:'var(--text-secondary)', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:20 }}>
-                <p style={{ fontSize:'1.1rem', fontWeight:600, marginBottom:'0.5rem' }}>{t('noLaptopsFound')}</p>
+                <p style={{ fontSize:'1.1rem', fontWeight:600, marginBottom:'0.5rem' }}>
+                  {marketMode === 'laptop' ? t('noLaptopsFound') : t('noPhonesFound')}
+                </p>
                 <p style={{ fontSize:'0.875rem' }}>{t('tryChangingFilters')}</p>
               </div>
 
@@ -292,9 +340,13 @@ export const Catalog: React.FC = () => {
                     initial="hidden" animate="show"
                     variants={{ hidden:{}, show:{ transition:{ staggerChildren:0.06 } } }}
                   >
-                    {recommendations.map(laptop => (
-                      <motion.div key={laptop.id} variants={cardVariants}>
-                        <LaptopCard laptop={laptop} />
+                    {recommendations.map(item => (
+                      <motion.div key={item.id} variants={cardVariants}>
+                        {marketMode === 'laptop' ? (
+                          <LaptopCard laptop={item as Laptop} />
+                        ) : (
+                          <PhoneCard phone={item as Phone} />
+                        )}
                       </motion.div>
                     ))}
                   </motion.div>
@@ -307,9 +359,13 @@ export const Catalog: React.FC = () => {
               initial="hidden" animate="show"
               variants={{ hidden:{}, show:{ transition:{ staggerChildren:0.06 } } }}
             >
-              {filtered.map(laptop => (
-                <motion.div key={laptop.id} variants={cardVariants}>
-                  <LaptopCard laptop={laptop} />
+              {filtered.map(item => (
+                <motion.div key={item.id} variants={cardVariants}>
+                  {marketMode === 'laptop' ? (
+                    <LaptopCard laptop={item as Laptop} />
+                  ) : (
+                    <PhoneCard phone={item as Phone} />
+                  )}
                 </motion.div>
               ))}
             </motion.div>
@@ -356,9 +412,19 @@ export const Catalog: React.FC = () => {
                   {lang === 'tj' && 'Ҷустуҷӯи визуалӣ бо АИ'}
                 </h3>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                  {lang === 'en' && 'AI is scanning the image to match chassis and keyboard profile.'}
-                  {lang === 'ru' && 'ИИ сканирует изображение для сопоставления корпуса и клавиатуры.'}
-                  {lang === 'tj' && 'АИ суратро барои муайян кардани корпус ва тарҳи лаптоп таҳлил мекунад.'}
+                  {marketMode === 'laptop' ? (
+                    <>
+                      {lang === 'en' && 'AI is scanning the image to match chassis and keyboard profile.'}
+                      {lang === 'ru' && 'ИИ сканирует изображение для сопоставления корпуса и клавиатуры.'}
+                      {lang === 'tj' && 'АИ суратро барои муайян кардани корпус ва тарҳи лаптоп таҳлил мекунад.'}
+                    </>
+                  ) : (
+                    <>
+                      {lang === 'en' && 'AI is scanning the image to match smartphone camera bump and logo.'}
+                      {lang === 'ru' && 'ИИ сканирует изображение для сопоставления блока камер и логотипа смартфона.'}
+                      {lang === 'tj' && 'АИ суратро барои муайян кардани блокҳои камера ва логотипи телефон таҳлил мекунад.'}
+                    </>
+                  )}
                 </p>
               </div>
 
@@ -407,14 +473,24 @@ export const Catalog: React.FC = () => {
                   </div>
                   <div>
                     <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {lang === 'en' && `Matched: ${scanResult} Laptop`}
-                      {lang === 'ru' && `Совпадение: Ноутбук ${scanResult}`}
-                      {lang === 'tj' && `Мувофиқат: Лаптопи ${scanResult}`}
+                      {marketMode === 'laptop' ? (
+                        <>
+                          {lang === 'en' && `Matched: ${scanResult} Laptop`}
+                          {lang === 'ru' && `Совпадение: Ноутбук ${scanResult}`}
+                          {lang === 'tj' && `Мувофиқат: Лаптопи ${scanResult}`}
+                        </>
+                      ) : (
+                        <>
+                          {lang === 'en' && `Matched: ${scanResult} Phone`}
+                          {lang === 'ru' && `Совпадение: Телефон ${scanResult}`}
+                          {lang === 'tj' && `Мувофиқат: Телефони ${scanResult}`}
+                        </>
+                      )}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
                       {lang === 'en' && 'Click Apply to show matching inventory listings.'}
                       {lang === 'ru' && 'Нажмите Применить для показа найденных объявлений.'}
-                      {lang === 'tj' && 'Барои дидани лаптопҳо "Истифода бурдан"-ро пахш кунед.'}
+                      {lang === 'tj' && 'Барои дидани эълонҳо "Истифода бурдан"-ро пахш кунед.'}
                     </div>
                   </div>
                 </motion.div>

@@ -1,11 +1,13 @@
 import apiClient from './client';
 import { Laptop } from './laptops';
+import { Phone } from './phones';
 import { User } from './auth';
 
 export interface Order {
   id: number;
   user_id: number;
-  laptop_id: number;
+  laptop_id?: number | null;
+  phone_id?: number | null;
   quantity: number;
   total_price: number;
   payment_method: string;
@@ -14,11 +16,13 @@ export interface Order {
   created_at: string;
   updated_at: string;
   laptop?: Laptop;
+  phone?: Phone;
   user?: User;
 }
 
 export interface OrderCreateInput {
-  laptop_id: number;
+  laptop_id?: number;
+  phone_id?: number;
   quantity: number;
   payment_method: string;
   installment_months?: number;

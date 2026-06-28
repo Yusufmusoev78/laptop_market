@@ -8,7 +8,8 @@ class Sale(Base):
     __tablename__ = "sales"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    laptop_id: Mapped[int] = mapped_column(ForeignKey("laptops.id"), index=True)
+    laptop_id: Mapped[Optional[int]] = mapped_column(ForeignKey("laptops.id"), nullable=True, index=True)
+    phone_id: Mapped[Optional[int]] = mapped_column(ForeignKey("phones.id"), nullable=True, index=True)
     owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
     brand_id: Mapped[Optional[int]] = mapped_column(ForeignKey("brands.id"), nullable=True, index=True)
     quantity: Mapped[int] = mapped_column(Integer)

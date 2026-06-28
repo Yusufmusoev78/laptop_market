@@ -9,7 +9,8 @@ class Order(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    laptop_id: Mapped[int] = mapped_column(ForeignKey("laptops.id"), index=True)
+    laptop_id: Mapped[Optional[int]] = mapped_column(ForeignKey("laptops.id"), nullable=True, index=True)
+    phone_id: Mapped[Optional[int]] = mapped_column(ForeignKey("phones.id"), nullable=True, index=True)
     quantity: Mapped[int] = mapped_column(Integer, default=1)
     total_price: Mapped[float] = mapped_column(Numeric(12, 2))
     payment_method: Mapped[str] = mapped_column(String(50))  # e.g., "alif", "humo", "eskhata", "dc"
@@ -18,5 +19,6 @@ class Order(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    laptop: Mapped["Laptop"] = relationship(foreign_keys=[laptop_id])
+    laptop: Mapped[Optional["Laptop"]] = relationship(foreign_keys=[laptop_id])
+    phone: Mapped[Optional["Phone"]] = relationship(foreign_keys=[phone_id])
     user: Mapped["User"] = relationship(foreign_keys=[user_id])

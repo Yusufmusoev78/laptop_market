@@ -21,6 +21,45 @@ main {
   transition: background 0.3s;
 }
 
+/* Market Switcher */
+.market-switcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--icon-btn-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 3px;
+  margin-left: 0.5rem;
+}
+.market-switch-btn {
+  padding: 0.4rem 0.8rem;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.market-switch-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+.market-switch-btn.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+}
+[data-theme="light"] .market-switch-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
 /* Brand */
 .nav-brand a {
   display: flex; align-items: center; gap: 0.5rem; text-decoration: none;

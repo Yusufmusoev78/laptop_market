@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useLang, Lang } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationsContext';
+import { useMarket } from '../../context/MarketContext';
 
 const LANG_LABELS: Record<Lang, string> = { tj: 'TJ', ru: 'RU', en: 'EN' };
 
@@ -13,6 +14,7 @@ export const Navbar: React.FC = () => {
   const { lang, setLang, t } = useLang();
   const { isAuthenticated, user } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
+  const { marketMode, setMarketMode } = useMarket();
   const navigate = useNavigate();
   const [searchVal, setSearchVal] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -48,9 +50,27 @@ export const Navbar: React.FC = () => {
           <Gem size={20} style={{ color: 'var(--primary)' }} />
           <span>
             <span className="nav-brand-text">Somon Comp</span>
-            <span className="nav-brand-sub">Laptop Marketplace</span>
+            <span className="nav-brand-sub">
+              {marketMode === 'laptop' ? 'Laptop Marketplace' : 'Phone Marketplace'}
+            </span>
           </span>
         </NavLink>
+      </div>
+
+      {/* Market Switcher */}
+      <div className="market-switcher">
+        <button
+          className={`market-switch-btn ${marketMode === 'laptop' ? 'active' : ''}`}
+          onClick={() => { setMarketMode('laptop'); navigate('/catalog'); }}
+        >
+          💻 <span className="desktop-only">{t('laptops')}</span>
+        </button>
+        <button
+          className={`market-switch-btn ${marketMode === 'phone' ? 'active' : ''}`}
+          onClick={() => { setMarketMode('phone'); navigate('/catalog'); }}
+        >
+          📱 <span className="desktop-only">{t('phones')}</span>
+        </button>
       </div>
 
       {/* Center search */}

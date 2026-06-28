@@ -15,6 +15,7 @@ from src.models.user import User
 from src.models.brand import Brand
 from src.models.sale import Sale
 from src.models.order import Order
+from src.models.phone import Phone
 
 
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@somoncomp.tj")
@@ -153,10 +154,37 @@ SEED_LAPTOPS = [
     ),
 ]
 
+SEED_PHONES = [
+    dict(
+        brand="Apple", model_name="iPhone 15 Pro Max", cpu="Apple A17 Pro",
+        ram_gb=8, storage_gb=256, screen_size_inches=6.7, battery_capacity_mah=4441,
+        color="Natural Titanium", price_tjs=16500.00, stock_quantity=10, warranty_months=12,
+        description="Флагмани охирини Apple бо корпуси титанӣ ва камераи 5х зум.",
+    ),
+    dict(
+        brand="Samsung", model_name="Galaxy S24 Ultra", cpu="Snapdragon 8 Gen 3",
+        ram_gb=12, storage_gb=512, screen_size_inches=6.8, battery_capacity_mah=5000,
+        color="Titanium Gray", price_tjs=15900.00, stock_quantity=8, warranty_months=12,
+        description="Камераи 200MP ва қалами S Pen — телефони пуриқтидор барои кор ва аксбардорӣ.",
+    ),
+    dict(
+        brand="Xiaomi", model_name="Redmi Note 13 Pro+", cpu="Dimensity 7200 Ultra",
+        ram_gb=12, storage_gb=512, screen_size_inches=6.67, battery_capacity_mah=5000,
+        color="Midnight Black", price_tjs=4990.00, stock_quantity=15, warranty_months=12,
+        description="Экран ва камераи олиҷаноб бо нархи дастрас ва пуркунандаи тези 120W.",
+    ),
+    dict(
+        brand="Apple", model_name="iPhone 13", cpu="Apple A15 Bionic",
+        ram_gb=4, storage_gb=128, screen_size_inches=6.1, battery_capacity_mah=3240,
+        color="Midnight Blue", price_tjs=8200.00, stock_quantity=12, warranty_months=12,
+        description="Телефони боэътимод ва машҳур — мувофиқи нарх ва сифати хуб.",
+    ),
+]
+
 
 async def seed() -> None:
     async with async_session_maker() as session:
-        added = 0
+        added_laptops = 0
         for data in SEED_LAPTOPS:
             existing = await session.execute(
                 select(Laptop.id).where(
@@ -166,13 +194,31 @@ async def seed() -> None:
             )
             if existing.scalar_one_or_none() is None:
                 session.add(Laptop(**data))
-                added += 1
+                added_laptops += 1
 
-        if added:
+        if added_laptops:
             await session.commit()
-            print(f"Seeded {added} new laptops.")
+            print(f"Seeded {added_laptops} new laptops.")
         else:
             print("All laptops already present, skipping seed.")
+
+        added_phones = 0
+        for data in SEED_PHONES:
+            existing = await session.execute(
+                select(Phone.id).where(
+                    Phone.brand == data['brand'],
+                    Phone.model_name == data['model_name'],
+                ).limit(1)
+            )
+            if existing.scalar_one_or_none() is None:
+                session.add(Phone(**data))
+                added_phones += 1
+
+        if added_phones:
+            await session.commit()
+            print(f"Seeded {added_phones} new phones.")
+        else:
+            print("All phones already present, skipping seed.")
 
         existing_admin = await session.execute(
             select(User.id).where(User.email == ADMIN_EMAIL).limit(1)
