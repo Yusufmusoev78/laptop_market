@@ -6,6 +6,9 @@ import { getLaptops, Laptop } from '../api/laptops';
 import { getLaptopGallery } from '../utils/laptopImages';
 import { LaptopCard } from '../components/ui/LaptopCard';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { createOrder } from '../api/orders';
+import toast from 'react-hot-toast';
 import './LaptopDetail.css';
 
 const fmt = (n: number) =>
@@ -15,6 +18,7 @@ export const LaptopDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t, lang } = useLang();
+  const { user } = useAuth();
 
   const [laptop,   setLaptop]   = useState<Laptop | null>(null);
   const [related,  setRelated]  = useState<Laptop[]>([]);
@@ -23,6 +27,31 @@ export const LaptopDetail: React.FC = () => {
   const [broken,   setBroken]   = useState<Set<number>>(new Set());
   const [installmentMonths, setInstallmentMonths] = useState<number>(12);
   const [selectedPayment, setSelectedPayment] = useState<string>('alif');
+  const [buying, setBuying] = useState(false);
+
+  const handleBuy = async () => {
+    if (!user) {
+      toast.error(t('loginToOrder'));
+      navigate('/login');
+      return;
+    }
+    if (!laptop) return;
+    setBuying(true);
+    try {
+      await createOrder({
+        laptop_id: laptop.id,
+        quantity: 1,
+        payment_method: selectedPayment,
+        installment_months: selectedPayment === 'dc' ? 0 : installmentMonths
+      });
+      toast.success(t('orderPlaced'));
+      setLaptop(prev => prev ? { ...prev, stock_quantity: prev.stock_quantity - 1 } : null);
+    } catch {
+      toast.error(t('orderFailed'));
+    } finally {
+      setBuying(false);
+    }
+  };
 
   const getMarkupPercent = (months: number) => {
     if (months === 3) return 0;
@@ -243,11 +272,12 @@ export const LaptopDetail: React.FC = () => {
 
           {/* Buy button */}
           <button
-            className={`detail-buy-btn ${!inStock ? 'disabled' : ''}`}
-            disabled={!inStock}
+            className={`detail-buy-btn ${!inStock || buying ? 'disabled' : ''}`}
+            disabled={!inStock || buying}
+            onClick={handleBuy}
           >
             <ShoppingCart size={18} />
-            {inStock ? t('addToCart') : t('outOfStockBtn')}
+            {buying ? t('submitting') : inStock ? t('addToCart') : t('outOfStockBtn')}
           </button>
 
           {/* Specs */}
