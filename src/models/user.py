@@ -8,6 +8,9 @@ class User(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=True)
+    phone: Mapped[str] = mapped_column(String(30), nullable=True)
+    address: Mapped[str] = mapped_column(String(255), nullable=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -3,7 +3,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any
 from src.api.dependencies import get_db, get_current_active_user
-from src.schemas.user import UserCreate, UserRead, Token
+from src.schemas.user import UserCreate, UserRead, UserUpdate, UsernameAvailability, Token
+from src.models.user import User
 from src.services.user import user_service
 from src.repositories.user import user_repo
 from src.core.security import verify_password, create_access_token
@@ -38,3 +39,22 @@ async def read_user_me(
 ) -> Any:
     """Get current user."""
     return current_user
+
+@router.patch("/me", response_model=UserRead)
+async def update_user_me(
+    user_in: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
+    """Update the current user's own profile (email, phone, address, password)."""
+    return await user_service.update_own_profile(db, current_user, user_in)
+
+@router.get("/check-username", response_model=UsernameAvailability)
+async def check_username(
+    username: str,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """Check whether a username is available, with alternative suggestions if not."""
+    available = await user_service.check_username_available(db, username)
+    suggestions = [] if available else await user_service.suggest_usernames(db, username)
+    return UsernameAvailability(available=available, suggestions=suggestions)

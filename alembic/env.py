@@ -25,6 +25,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.models.base import Base
 from src.models.user import User
 from src.models.laptop import Laptop
+from src.models.brand import Brand
+from src.models.sale import Sale
 target_metadata = Base.metadata
 
 from src.core.config import settings

@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import datetime
 
 class LaptopBase(BaseModel):
-    brand: str
     model_name: str
     cpu: str
     ram_gb: int
@@ -16,7 +15,7 @@ class LaptopBase(BaseModel):
     description: Optional[str] = None
 
 class LaptopCreate(LaptopBase):
-    pass
+    brand_id: int
 
 class LaptopUpdate(BaseModel):
     brand: Optional[str] = None
@@ -33,6 +32,9 @@ class LaptopUpdate(BaseModel):
 
 class LaptopRead(LaptopBase):
     id: int
+    owner_id: Optional[int] = None
+    brand: str
+    brand_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

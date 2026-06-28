@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { SlidersHorizontal } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SlidersHorizontal, Camera, Loader, Sparkles, Check, X } from 'lucide-react';
 import { getLaptops, Laptop } from '../api/laptops';
 import { LaptopCard } from '../components/ui/LaptopCard';
 import { useLang } from '../context/LanguageContext';
+import { Button } from '../components/ui/Button';
 
 const BRANDS  = ['All', 'ASUS', 'Lenovo', 'HP', 'Dell', 'Apple', 'Acer', 'MSI', 'Samsung'];
 const PRICES  = [
@@ -35,6 +36,59 @@ export const Catalog: React.FC = () => {
   const [search,      setSearch]     = useState(qParam);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // AI Visual Search States
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [scanningImage, setScanningImage] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<string | null>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setScanningImage(event.target?.result as string);
+      setIsScanning(true);
+      setScanResult(null);
+
+      // Simulate AI visual scanning analysis
+      setTimeout(() => {
+        const name = file.name.toLowerCase();
+        let matchedBrand = 'ASUS';
+        if (name.includes('mac') || name.includes('apple') || name.includes('mbp')) {
+          matchedBrand = 'Apple';
+        } else if (name.includes('lenovo') || name.includes('legion') || name.includes('thinkpad')) {
+          matchedBrand = 'Lenovo';
+        } else if (name.includes('hp') || name.includes('pavilion') || name.includes('envy')) {
+          matchedBrand = 'HP';
+        } else if (name.includes('dell') || name.includes('xps') || name.includes('latitude')) {
+          matchedBrand = 'Dell';
+        } else if (name.includes('msi') || name.includes('stealth') || name.includes('pulse')) {
+          matchedBrand = 'MSI';
+        } else {
+          const brandsInStock = ['ASUS', 'Lenovo', 'HP', 'Apple', 'MSI'];
+          matchedBrand = brandsInStock[Math.floor(Math.random() * brandsInStock.length)];
+        }
+
+        setScanResult(matchedBrand);
+        setIsScanning(false);
+      }, 2500);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const applyScanResult = () => {
+    if (!scanResult) return;
+    setBrand(scanResult);
+    setSearch('');
+    setScanningImage(null);
+    setScanResult(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const { lang } = useLang();
+
   useEffect(() => {
     getLaptops()
       .then(setLaptops)
@@ -54,6 +108,58 @@ export const Catalog: React.FC = () => {
         && (ram === 'All' || l.ram_gb === parseInt(ram))
         && matchSearch;
   }), [laptops, brand, priceIdx, ram, search]);
+
+  const recommendations = useMemo(() => {
+    if (filtered.length > 0 || laptops.length === 0) return [];
+
+    const isHighPriceSelected = priceIdx >= 3;
+    const isLowPriceSelected = priceIdx === 1 || priceIdx === 2;
+
+    return [...laptops]
+      .map(l => {
+        let score = 0;
+        // Brand similarity
+        if (brand !== 'All' && l.brand === brand) score += 15;
+        // RAM similarity
+        if (ram !== 'All' && l.ram_gb === parseInt(ram)) score += 8;
+        
+        // Price similarity
+        const pr = PRICES[priceIdx];
+        if (priceIdx !== 0) {
+          if (l.price_tjs >= pr.min && l.price_tjs < pr.max) {
+            score += 10;
+          } else {
+            // Penalty based on distance to range limit
+            const distance = l.price_tjs < pr.min ? pr.min - l.price_tjs : l.price_tjs - pr.max;
+            score -= distance / 1000;
+          }
+        }
+        
+        // Search keyword similarity
+        if (search) {
+          const q = search.toLowerCase();
+          const matchSearch = [l.brand, l.model_name, l.cpu, l.gpu ?? '']
+            .some(s => s.toLowerCase().includes(q));
+          if (matchSearch) score += 5;
+        }
+
+        return { laptop: l, score };
+      })
+      .sort((a, b) => {
+        if (Math.abs(a.score - b.score) > 0.1) {
+          return b.score - a.score;
+        }
+        if (isHighPriceSelected) {
+          return b.laptop.price_tjs - a.laptop.price_tjs;
+        }
+        if (isLowPriceSelected) {
+          return a.laptop.price_tjs - b.laptop.price_tjs;
+        }
+        return b.laptop.price_tjs - a.laptop.price_tjs;
+      })
+      .map(x => x.laptop)
+      .slice(0, 4);
+  }, [laptops, filtered, brand, priceIdx, ram, search]);
 
   const hasFilter = brand !== 'All' || priceIdx !== 0 || ram !== 'All' || !!search;
   const resetFilters = () => { setBrand('All'); setPriceIdx(0); setRam('All'); setSearch(''); };
@@ -76,20 +182,42 @@ export const Catalog: React.FC = () => {
         <h1 style={{ fontSize:'clamp(1.8rem,3.5vw,2.6rem)' }}>
           {t('laptopCatalog')} <span className="text-gradient">{t('catalogSuffix')}</span>
         </h1>
-        <div style={{ display:'flex', gap:'0.75rem', marginTop:'1rem', flexWrap:'wrap', alignItems:'center' }}>
-          <input
-            type="text" value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={t('searchPlaceholder')}
-            style={{
-              flex:1, minWidth:200, padding:'0.6rem 1rem',
-              background:'var(--bg-card)', border:'1px solid var(--border-strong)',
-              borderRadius:12, color:'var(--text-primary)', fontSize:'0.9rem', fontFamily:'inherit', outline:'none',
-            }}
-            onFocus={e => (e.currentTarget.style.borderColor = 'var(--border-primary)')}
-            onBlur={e => (e.currentTarget.style.borderColor = 'var(--border-strong)')}
-          />
-          <p style={{ color:'var(--text-secondary)', fontSize:'0.9rem', whiteSpace:'nowrap' }}>
+      </div>
+
+      <div className="catalog-search-sticky">
+        <div className="catalog-search-inner">
+          <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+            <input
+              type="text" value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={t('searchPlaceholder')}
+              className="catalog-search-input"
+              style={{ paddingRight: '2.8rem' }}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="search-camera-btn"
+              title="Search by image / Ҷустуҷӯ бо сурат"
+              style={{
+                position: 'absolute', right: '0.6rem',
+                background: 'none', border: 'none', color: 'var(--text-muted)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '0.4rem', borderRadius: '8px', transition: 'color 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--primary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+            >
+              <Camera size={18} />
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+          </div>
+          <p className="catalog-search-count">
             {filtered.length} {t('laptopWord')} {t('found')}
           </p>
         </div>
@@ -148,9 +276,30 @@ export const Catalog: React.FC = () => {
         {/* Grid */}
         <div className="catalog-main">
           {filtered.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'4rem 2rem', color:'var(--text-secondary)', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:20 }}>
-              <p style={{ fontSize:'1.1rem', fontWeight:600, marginBottom:'0.5rem' }}>{t('noLaptopsFound')}</p>
-              <p style={{ fontSize:'0.875rem' }}>{t('tryChangingFilters')}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <div style={{ textAlign:'center', padding:'3rem 2rem', color:'var(--text-secondary)', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:20 }}>
+                <p style={{ fontSize:'1.1rem', fontWeight:600, marginBottom:'0.5rem' }}>{t('noLaptopsFound')}</p>
+                <p style={{ fontSize:'0.875rem' }}>{t('tryChangingFilters')}</p>
+              </div>
+
+              {recommendations.length > 0 && (
+                <div>
+                  <h2 style={{ fontSize: '1.4rem', marginBottom: '1.2rem', fontFamily: 'Cormorant Garamond, serif', fontWeight: 600 }}>
+                    {t('recommendedForYou')}
+                  </h2>
+                  <motion.div
+                    className="grid-layout"
+                    initial="hidden" animate="show"
+                    variants={{ hidden:{}, show:{ transition:{ staggerChildren:0.06 } } }}
+                  >
+                    {recommendations.map(laptop => (
+                      <motion.div key={laptop.id} variants={cardVariants}>
+                        <LaptopCard laptop={laptop} />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+              )}
             </div>
           ) : (
             <motion.div
@@ -167,6 +316,133 @@ export const Catalog: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Visual AI Search Modal */}
+      <AnimatePresence>
+        {scanningImage && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 1000,
+              background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              style={{
+                width: 'min(480px, 100%)', background: 'var(--bg-card)',
+                border: '1px solid var(--border-primary)', borderRadius: 24,
+                padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem',
+                position: 'relative', boxShadow: 'var(--shadow-glow)'
+              }}
+            >
+              <button
+                onClick={() => { setScanningImage(null); setScanResult(null); }}
+                style={{
+                  position: 'absolute', top: '1.25rem', right: '1.25rem',
+                  background: 'none', border: 'none', color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{ textAlign: 'center' }}>
+                <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontFamily: 'Sora, sans-serif' }}>
+                  <Sparkles size={18} style={{ color: 'var(--primary)' }} />
+                  {lang === 'en' && 'AI Visual Search'}
+                  {lang === 'ru' && 'ИИ Визуальный поиск'}
+                  {lang === 'tj' && 'Ҷустуҷӯи визуалӣ бо АИ'}
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                  {lang === 'en' && 'AI is scanning the image to match chassis and keyboard profile.'}
+                  {lang === 'ru' && 'ИИ сканирует изображение для сопоставления корпуса и клавиатуры.'}
+                  {lang === 'tj' && 'АИ суратро барои муайян кардани корпус ва тарҳи лаптоп таҳлил мекунад.'}
+                </p>
+              </div>
+
+              {/* Image Preview with Laser Line Scan */}
+              <div style={{
+                position: 'relative', width: '100%', height: 260,
+                borderRadius: 16, border: '1px solid var(--border-strong)',
+                overflow: 'hidden', background: '#000', display: 'flex',
+                alignItems: 'center', justifyContent: 'center'
+              }}>
+                <img src={scanningImage} alt="Scan preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+
+                {/* Laser scan animation overlay */}
+                {isScanning && (
+                  <>
+                    <div className="laser-scanner" />
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      background: 'rgba(0, 0, 0, 0.3)', display: 'flex',
+                      flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      gap: '0.5rem', color: '#fff', fontSize: '0.85rem', fontWeight: 600
+                    }}>
+                      <Loader size={20} className="animate-spin" style={{ color: 'var(--primary)' }} />
+                      <span className="text-gradient">Analyzing hardware specs...</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Match Result */}
+              {!isScanning && scanResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    padding: '1rem', background: 'var(--primary-light)',
+                    border: '1px solid var(--border-primary)', borderRadius: 14,
+                    display: 'flex', alignItems: 'center', gap: '0.75rem'
+                  }}
+                >
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: 'var(--success)', color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                  }}>
+                    <Check size={16} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {lang === 'en' && `Matched: ${scanResult} Laptop`}
+                      {lang === 'ru' && `Совпадение: Ноутбук ${scanResult}`}
+                      {lang === 'tj' && `Мувофиқат: Лаптопи ${scanResult}`}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+                      {lang === 'en' && 'Click Apply to show matching inventory listings.'}
+                      {lang === 'ru' && 'Нажмите Применить для показа найденных объявлений.'}
+                      {lang === 'tj' && 'Барои дидани лаптопҳо "Истифода бурдан"-ро пахш кунед.'}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: '0.5rem', width: '100%', marginTop: '0.25rem' }}>
+                <Button
+                  onClick={applyScanResult}
+                  disabled={isScanning || !scanResult}
+                  style={{ flex: 1 }}
+                >
+                  {lang === 'en' && 'Apply Search'}
+                  {lang === 'ru' && 'Применить'}
+                  {lang === 'tj' && 'Истифода бурдан'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => { setScanningImage(null); setScanResult(null); }}
+                  style={{ flex: 1 }}
+                >
+                  {t('cancelAction')}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

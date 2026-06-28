@@ -12,9 +12,17 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         result = await db.execute(query)
         return result.scalar_one_or_none()
 
+    async def get_by_username(self, db: AsyncSession, username: str) -> Optional[User]:
+        query = select(User).where(User.username == username)
+        result = await db.execute(query)
+        return result.scalar_one_or_none()
+
     async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> User:
         db_obj = User(
             email=obj_in.email,
+            username=obj_in.username,
+            phone=obj_in.phone,
+            address=obj_in.address,
             hashed_password=get_password_hash(obj_in.password),
             is_active=obj_in.is_active,
             is_admin=obj_in.is_admin

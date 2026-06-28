@@ -1,0 +1,65 @@
+.auth-page {
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: 3rem 1rem 4rem;
+  min-height: 60vh;
+}
+
+.auth-card {
+  width: 100%; max-width: 400px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 2rem;
+  box-shadow: var(--shadow-card);
+}
+
+.auth-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem; font-weight: 600; margin-bottom: 0.4rem;
+}
+
+.auth-subtitle {
+  font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1.75rem; line-height: 1.5;
+}
+
+.auth-form { display: flex; flex-direction: column; gap: 1.1rem; }
+
+.auth-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.auth-field label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+.auth-field input {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.65rem 0.85rem;
+  font-size: 0.92rem; color: var(--text-primary); font-family: inherit;
+  transition: border-color 0.15s;
+}
+.auth-field input:focus, .auth-field textarea:focus { outline: none; border-color: var(--border-primary); }
+.auth-field textarea {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.65rem 0.85rem;
+  font-size: 0.92rem; color: var(--text-primary); font-family: inherit;
+  resize: vertical; min-height: 80px;
+}
+
+.auth-error {
+  font-size: 0.82rem; color: var(--danger);
+  background: rgba(195, 108, 108, 0.1); border: 1px solid rgba(195, 108, 108, 0.25);
+  border-radius: 4px; padding: 0.55rem 0.8rem;
+}
+
+.username-hint { font-size: 0.78rem; }
+.username-hint.username-ok { color: var(--success); }
+.username-hint.username-bad { color: var(--danger); display: flex; flex-direction: column; gap: 0.4rem; }
+.username-suggestions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.username-suggestion-chip {
+  background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-primary);
+  border-radius: 999px; padding: 0.25rem 0.7rem; font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.username-suggestion-chip:hover { border-color: var(--border-primary); color: var(--primary); }
+
+.auth-submit-btn { margin-top: 0.3rem; }
+
+.auth-switch {
+  margin-top: 1.5rem; text-align: center;
+  font-size: 0.85rem; color: var(--text-secondary);
+}
+.auth-switch a { color: var(--primary); font-weight: 600; text-decoration: none; margin-left: 0.3rem; }
+.auth-switch a:hover { text-decoration: underline; }

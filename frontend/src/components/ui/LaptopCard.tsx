@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
-import { Cpu, HardDrive, MemoryStick, Zap, ShoppingCart, Image as ImageIcon } from 'lucide-react';
+import { Cpu, HardDrive, MemoryStick, Zap, ShoppingCart, Image as ImageIcon, Laptop, Flame } from 'lucide-react';
 import { Laptop as LaptopType } from '../../api/laptops';
 import { getLaptopGallery } from '../../utils/laptopImages';
 import { useLang } from '../../context/LanguageContext';
@@ -96,7 +96,9 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
       {/* ── Image area ── */}
       <div className="card-image-area">
         {/* Fallback base layer (shows if every photo fails to load) */}
-        <div className="card-photo-fallback">💻</div>
+        <div className="card-photo-fallback">
+          <Laptop size={44} style={{ color: 'var(--text-muted)' }} />
+        </div>
 
         {/* Stacked gallery — only the active one is opaque */}
         {gallery.map((src, i) => (
@@ -113,7 +115,12 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
 
         <span className="laptop-brand-badge">{laptop.brand}</span>
 
-        {isHot && <span className="hot-badge">🔥 HOT</span>}
+        {isHot && (
+          <span className="hot-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <Flame size={12} />
+            HOT
+          </span>
+        )}
 
         <div className={`stock-badge ${inStock ? 'in-stock' : 'out-of-stock'}`}>
           {inStock ? `${laptop.stock_quantity} ${t('inStock')}` : t('outOfStock')}

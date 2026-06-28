@@ -1,0 +1,31 @@
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.25rem; box-shadow: var(--shadow-card);
+}
+.stat-card-icon { color: var(--primary); margin-bottom: 0.5rem; }
+.stat-card-value {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 700; color: var(--text-primary);
+}
+.stat-card-label { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem; }
+
+.charts-row {
+  display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;
+}
+@media (max-width: 800px) {
+  .charts-row { grid-template-columns: 1fr; }
+}
+
+.chart-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.25rem; box-shadow: var(--shadow-card);
+}
+.chart-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600;
+  margin: 0 0 1rem; color: var(--text-primary);
+}
+.chart-empty { font-size: 0.85rem; color: var(--text-muted); padding: 2rem 0; text-align: center; }

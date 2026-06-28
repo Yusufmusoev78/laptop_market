@@ -1,5 +1,6 @@
+from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Text, Numeric, Integer, DateTime, func
+from sqlalchemy import String, Text, Numeric, Integer, DateTime, ForeignKey, func
 from datetime import datetime
 from src.models.base import Base
 
@@ -7,6 +8,8 @@ class Laptop(Base):
     __tablename__ = "laptops"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    brand_id: Mapped[Optional[int]] = mapped_column(ForeignKey("brands.id"), nullable=True, index=True)
     brand: Mapped[str] = mapped_column(String(100), index=True)
     model_name: Mapped[str] = mapped_column(String(255), index=True)
     cpu: Mapped[str] = mapped_column(String(100))

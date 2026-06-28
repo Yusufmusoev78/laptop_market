@@ -1,15 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Gem, Search, Bell, Sun, Moon, User, X, Menu } from 'lucide-react';
+import { Gem, Search, Bell, Sun, Moon, User, X, Menu, Globe, Shield, Sparkles } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLang, Lang } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationsContext';
 
-const LANG_FLAGS: Record<Lang, string> = { tj: '🇹🇯', ru: '🇷🇺', en: '🇬🇧' };
 const LANG_LABELS: Record<Lang, string> = { tj: 'TJ', ru: 'RU', en: 'EN' };
 
 export const Navbar: React.FC = () => {
   const { theme, toggle } = useTheme();
   const { lang, setLang, t } = useLang();
+  const { isAuthenticated, user } = useAuth();
+  const { notifications, unreadCount, markAllRead } = useNotifications();
   const navigate = useNavigate();
   const [searchVal, setSearchVal] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -73,6 +76,12 @@ export const Navbar: React.FC = () => {
         <div className="nav-pill-group desktop-only">
           <NavLink to="/" end>{t('home')}</NavLink>
           <NavLink to="/catalog">{t('catalog')}</NavLink>
+          {user?.is_admin && (
+            <NavLink to="/admin">
+              <Shield size={13} style={{ marginRight: '0.3rem', verticalAlign: '-2px' }} />
+              {t('adminPanel')}
+            </NavLink>
+          )}
         </div>
 
         <div className="nav-actions">
@@ -82,9 +91,10 @@ export const Navbar: React.FC = () => {
               className="nav-icon-btn lang-btn"
               onClick={() => { setLangOpen(o => !o); setNotifOpen(false); }}
               title="Language / Забон / Язык"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
             >
-              <span style={{ fontSize: '0.8rem' }}>{LANG_FLAGS[lang]}</span>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>{LANG_LABELS[lang]}</span>
+              <Globe size={14} style={{ color: 'var(--primary)' }} />
+              <span style={{ fontSize: '0.72rem', fontWeight: 600 }}>{LANG_LABELS[lang]}</span>
             </button>
             {langOpen && (
               <div className="lang-dropdown">
@@ -94,7 +104,7 @@ export const Navbar: React.FC = () => {
                     className={`lang-option ${lang === l ? 'active' : ''}`}
                     onClick={() => { setLang(l); setLangOpen(false); }}
                   >
-                    <span>{LANG_FLAGS[l]}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{LANG_LABELS[l]}</span>
                     <span>{l === 'tj' ? 'Тоҷикӣ' : l === 'ru' ? 'Русский' : 'English'}</span>
                   </button>
                 ))}
@@ -107,10 +117,10 @@ export const Navbar: React.FC = () => {
             <button
               className="nav-icon-btn"
               title={t('notifTitle')}
-              onClick={() => { setNotifOpen(n => !n); setLangOpen(false); }}
+              onClick={() => { setNotifOpen(n => !n); setLangOpen(false); if (!notifOpen) markAllRead(); }}
             >
               <Bell size={17} />
-              <span className="notif-dot" />
+              {unreadCount > 0 && <span className="notif-dot" />}
             </button>
             {notifOpen && (
               <div className="notif-dropdown">
@@ -118,18 +128,19 @@ export const Navbar: React.FC = () => {
                   <span>{t('notifTitle')}</span>
                   <button onClick={() => setNotifOpen(false)}><X size={14} /></button>
                 </div>
-                <div className="notif-item">
-                  <span className="notif-icon">🔥</span>
-                  <div><p>{t('notif1Title')}</p><span>{t('notif1Desc')}</span></div>
-                </div>
-                <div className="notif-item">
-                  <span className="notif-icon">💸</span>
-                  <div><p>{t('notif2Title')}</p><span>{t('notif2Desc')}</span></div>
-                </div>
-                <div className="notif-item">
-                  <span className="notif-icon">✅</span>
-                  <div><p>{t('notif3Title')}</p><span>{t('notif3Desc')}</span></div>
-                </div>
+                {notifications.length === 0 && (
+                  <div className="notif-item">
+                    <div><span>{t('notificationsEmpty')}</span></div>
+                  </div>
+                )}
+                {notifications.map(n => (
+                  <div className="notif-item" key={n.id}>
+                    <span className="notif-icon" style={{ display: 'flex', marginTop: '3px' }}>
+                      <Sparkles size={15} style={{ color: 'var(--primary)' }} />
+                    </span>
+                    <div><p>{n.message}</p></div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -140,7 +151,11 @@ export const Navbar: React.FC = () => {
           </button>
 
           {/* Profile */}
-          <button className="nav-icon-btn nav-profile-btn" title={t('profile')}>
+          <button
+            className="nav-icon-btn nav-profile-btn"
+            title={t('profile')}
+            onClick={() => navigate(isAuthenticated ? '/profile' : '/login')}
+          >
             <User size={16} />
           </button>
         </div>
@@ -167,6 +182,9 @@ export const Navbar: React.FC = () => {
 
           <NavLink to="/" end onClick={() => setMobileOpen(false)}>{t('home')}</NavLink>
           <NavLink to="/catalog" onClick={() => setMobileOpen(false)}>{t('catalog')}</NavLink>
+          {user?.is_admin && (
+            <NavLink to="/admin" onClick={() => setMobileOpen(false)}>{t('adminPanel')}</NavLink>
+          )}
 
           <div className="mobile-menu-divider" />
 
@@ -185,7 +203,7 @@ export const Navbar: React.FC = () => {
                   fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
                 }}
               >
-                {LANG_FLAGS[l]} {LANG_LABELS[l]}
+                <Globe size={13} style={{ opacity: 0.8 }} /> {LANG_LABELS[l]}
               </button>
             ))}
           </div>
@@ -196,7 +214,10 @@ export const Navbar: React.FC = () => {
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             {theme === 'dark' ? t('lightMode') : t('darkMode')}
           </button>
-          <button className="mobile-menu-action">
+          <button
+            className="mobile-menu-action"
+            onClick={() => { setMobileOpen(false); navigate(isAuthenticated ? '/profile' : '/login'); }}
+          >
             <User size={16} />
             {t('profile')}
           </button>

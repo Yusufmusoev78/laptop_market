@@ -1,13 +1,20 @@
-"""Populate the laptops table with sample Tajikistan-market listings (idempotent per brand+model)."""
+"""Populate the laptops table with sample Tajikistan-market listings (idempotent per brand+model)
+and ensure a default admin user exists (idempotent per email)."""
 import asyncio
+import os
 import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from sqlalchemy import select
+from src.core.security import get_password_hash
 from src.db.session import async_session_maker
 from src.models.laptop import Laptop
+from src.models.user import User
+
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@somoncomp.tj")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ChangeMe123!")
 
 SEED_LAPTOPS = [
     # ── Budget (under 7,000 TJS) ──────────────────────────────────────────
@@ -162,6 +169,21 @@ async def seed() -> None:
             print(f"Seeded {added} new laptops.")
         else:
             print("All laptops already present, skipping seed.")
+
+        existing_admin = await session.execute(
+            select(User.id).where(User.email == ADMIN_EMAIL).limit(1)
+        )
+        if existing_admin.scalar_one_or_none() is None:
+            session.add(User(
+                email=ADMIN_EMAIL,
+                hashed_password=get_password_hash(ADMIN_PASSWORD),
+                is_active=True,
+                is_admin=True,
+            ))
+            await session.commit()
+            print(f"Created admin user: {ADMIN_EMAIL} / {ADMIN_PASSWORD} (change this password after logging in).")
+        else:
+            print(f"Admin user {ADMIN_EMAIL} already exists, skipping.")
 
 
 if __name__ == "__main__":

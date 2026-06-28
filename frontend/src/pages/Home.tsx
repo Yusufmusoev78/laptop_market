@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { Truck, ShieldCheck, Coins, ArrowRight } from 'lucide-react';
+import { Truck, ShieldCheck, Coins, ArrowRight, Check, Star, Flame, Laptop as LaptopIcon, Monitor, Apple } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { LaptopCard } from '../components/ui/LaptopCard';
-import { Aurora } from '../components/ui/Aurora';
 import { getLaptops, Laptop } from '../api/laptops';
 import { useLang } from '../context/LanguageContext';
 
@@ -41,11 +40,15 @@ export const Home: React.FC = () => {
       {/* ── Hero ── */}
       <section style={{ position: 'relative', overflow: 'hidden', margin: '0 -1.5rem' }}>
         <div className="hero-bg">
-          <Aurora amplitude={1.1} colorStops={['#4338ca', '#6366f1', '#8b5cf6']} />
-          <div className="hero-orb hero-orb-1" />
-          <div className="hero-orb hero-orb-2" />
-          <div className="hero-orb hero-orb-3" />
-          <div className="hero-orb hero-orb-4" />
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'url(/luxury_laptop_bg.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.16,
+            mixBlendMode: 'luminosity'
+          }} />
           <div className="hero-grid-overlay" />
         </div>
 
@@ -75,9 +78,9 @@ export const Home: React.FC = () => {
             </div>
 
             <div className="hero-badges">
-              <span className="hero-badge">{t('guarantee')}</span>
-              <span className="hero-badge">{t('deliveryCity')}</span>
-              <span className="hero-badge">{t('modelsCount')}</span>
+              <span className="hero-badge"><Check size={12} style={{ marginRight: '4px', verticalAlign: 'middle', color: 'var(--primary)' }} />{t('guarantee')}</span>
+              <span className="hero-badge"><Check size={12} style={{ marginRight: '4px', verticalAlign: 'middle', color: 'var(--primary)' }} />{t('deliveryCity')}</span>
+              <span className="hero-badge"><Check size={12} style={{ marginRight: '4px', verticalAlign: 'middle', color: 'var(--primary)' }} />{t('modelsCount')}</span>
             </div>
           </div>
 
@@ -85,12 +88,15 @@ export const Home: React.FC = () => {
           <div className="hero-card-wrap">
             <div className="hero-featured-card">
               <div className="hero-card-header">
-                <span>{t('weekOffer')}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Star size={13} style={{ fill: 'currentColor' }} />
+                  {t('weekOffer')}
+                </span>
                 <span className="hero-card-badge">{t('available')}</span>
               </div>
               <div className="hero-card-image">
                 <div className="hero-card-orb" />
-                <span style={{ fontSize: '4rem', position: 'relative', zIndex: 1 }}>💻</span>
+                <LaptopIcon size={64} style={{ color: 'var(--primary)', position: 'relative', zIndex: 1 }} />
                 <div className="hero-card-scan" />
               </div>
               <div className="hero-card-body">
@@ -114,15 +120,20 @@ export const Home: React.FC = () => {
 
             <div className="hero-mini-cards">
               {[
-                { e: '🖥️', n: 'Dell XPS 13',     p: '15,990' },
-                { e: '🍎', n: 'MacBook Pro M3', p: '27,900' },
-              ].map(c => (
-                <div key={c.n} className="hero-mini-card" onClick={() => navigate('/catalog')}>
-                  <div style={{ fontSize: '1.6rem' }}>{c.e}</div>
-                  <div className="hero-mini-name">{c.n}</div>
-                  <div className="hero-mini-price">{c.p}</div>
-                </div>
-              ))}
+                { icon: Monitor, n: 'Dell XPS 13',     p: '15,990' },
+                { icon: Apple, n: 'MacBook Pro M3', p: '27,900' },
+              ].map(c => {
+                const IconComp = c.icon;
+                return (
+                  <div key={c.n} className="hero-mini-card" onClick={() => navigate('/catalog')}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.3rem' }}>
+                      <IconComp size={22} style={{ color: 'var(--primary)' }} />
+                    </div>
+                    <div className="hero-mini-name">{c.n}</div>
+                    <div className="hero-mini-price">{c.p}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -141,7 +152,10 @@ export const Home: React.FC = () => {
       {/* ── Hot / Top Sales ── */}
       {hotLaptops.length > 0 && (
         <section style={{ marginBottom: '3rem' }}>
-          <p className="section-eyebrow">{t('popular')}</p>
+          <p className="section-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <Flame size={12} />
+            {t('popular')}
+          </p>
           <div className="section-header">
             <h2>{t('topSales')}</h2>
             <NavLink to="/catalog">{t('viewAll')}</NavLink>

@@ -11,19 +11,19 @@ const GALLERIES: Record<string, string[]> = {
     'photo-1496181133206-80ce9b88a853',
   ],
   macbookPro: [
-    'photo-1611186871525-07e2c26c3d4c',
+    'photo-1611186871348-b1ce696e52c9',
     'photo-1517336714731-489689fd1ca8',
     'photo-1531297484001-80022131f5a1',
   ],
   gaming: [
-    'photo-1593640408182-31c70c8268f5',
-    'photo-1542751371-adc38448a05e',
+    'photo-1629131726692-1accd0c53ce0',
     'photo-1603302576837-37561b2e2302',
+    'photo-1593305841991-05c297ba4575',
   ],
   gamingMsi: [
-    'photo-1542751371-adc38448a05e',
-    'photo-1593640408182-31c70c8268f5',
     'photo-1629131726692-1accd0c53ce0',
+    'photo-1603302576837-37561b2e2302',
+    'photo-1593640408182-31c70c8268f5',
   ],
   asus: [
     'photo-1525547719571-a2d4ac8945e2',
