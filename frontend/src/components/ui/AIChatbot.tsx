@@ -4,6 +4,8 @@ import { MessageSquare, X, Send, Sparkles, Loader, Trash2, Menu, Brain, BookOpen
 import { useNavigate } from 'react-router-dom';
 import { getLaptops, Laptop } from '../../api/laptops';
 import { getLaptopGallery } from '../../utils/laptopImages';
+import { getPhones, Phone } from '../../api/phones';
+import { getPhoneGallery } from '../../utils/phoneImages';
 import { useLang } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,6 +13,7 @@ interface Message {
   sender: 'user' | 'ai';
   text: string;
   laptops?: Laptop[];
+  phones?: Phone[];
 }
 
 export const AIChatbot: React.FC = () => {
@@ -23,6 +26,7 @@ export const AIChatbot: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [laptops, setLaptops] = useState<Laptop[]>([]);
+  const [phones, setPhones] = useState<Phone[]>([]);
 
   // Load chat history from localStorage
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -36,6 +40,7 @@ export const AIChatbot: React.FC = () => {
 
   useEffect(() => {
     getLaptops().then(setLaptops).catch(() => {});
+    getPhones().then(setPhones).catch(() => {});
   }, []);
 
   // Save chat history to localStorage
@@ -53,15 +58,15 @@ export const AIChatbot: React.FC = () => {
       if (lang === 'tj') {
         welcome = name 
           ? `Салом, ${name}! Ман ёвари АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо кумак кунам?` 
-          : 'Салом! Ман ёвар-АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо дар интихоби лаптопи мувофиқ кумак кунам?';
+          : 'Салом! Ман ёвар-АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо дар интихоби лаптопи мувофиқ ё телефони дилхоҳ кумак кунам?';
       } else if (lang === 'ru') {
         welcome = name 
           ? `Привет, ${name}! Я ИИ-ассистент Somon Comp. Как я могу помочь вам сегодня?` 
-          : 'Привет! Я ИИ-ассистент Somon Comp. Как я могу помочь вам выбрать подходящий ноутбук?';
+          : 'Привет! Я ИИ-ассистент Somon Comp. Как я могу помочь вам выбрать подходящий ноутбук или телефон?';
       } else {
         welcome = name 
           ? `Hello, ${name}! I am Somon Comp AI. How can I help you today?` 
-          : 'Hello! I am Somon Comp AI. How can I help you find the perfect laptop today?';
+          : 'Hello! I am Somon Comp AI. How can I help you find the perfect laptop or smartphone today?';
       }
       setMessages([{ sender: 'ai', text: welcome }]);
     }
@@ -80,15 +85,15 @@ export const AIChatbot: React.FC = () => {
     if (lang === 'tj') {
       welcome = name 
         ? `Салом, ${name}! Ман ёвари АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо кумак кунам?` 
-        : 'Салом! Ман ёвар-АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо дар интихоби лаптопи мувофиқ кумак кунам?';
+        : 'Салом! Ман ёвар-АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо дар интихоби лаптопи мувофиқ ё телефони дилхоҳ кумак кунам?';
     } else if (lang === 'ru') {
       welcome = name 
         ? `Привет, ${name}! Я ИИ-ассистент Somon Comp. Как я могу помочь вам сегодня?` 
-        : 'Привет! Я ИИ-ассистент Somon Comp. Как я могу помочь вам выбрать подходящий ноутбук?';
+        : 'Привет! Я ИИ-ассистент Somon Comp. Как я могу помочь вам выбрать подходящий ноутбук или телефон?';
     } else {
       welcome = name 
         ? `Hello, ${name}! I am Somon Comp AI. How can I help you today?` 
-        : 'Hello! I am Somon Comp AI. How can I help you find the perfect laptop today?';
+        : 'Hello! I am Somon Comp AI. How can I help you find the perfect laptop or smartphone today?';
     }
     setMessages([{ sender: 'ai', text: welcome }]);
     setShowMenu(false);
@@ -101,19 +106,19 @@ export const AIChatbot: React.FC = () => {
       let insight = '';
       if (lang === 'tj') {
         insight = `**Таҳлили Омори Фурӯш & Идеяҳо (AI Audit)**:
-• **Харидорон**: Корбарони фаъол аз брендҳои Lenovo ва Apple харидорӣ намудаанд.
+• **Харидорон**: Корбарони фаъол бештар моделҳои Lenovo, Apple ва смартфонҳои Samsung-ро харидорӣ намудаанд.
 • **Қарздорҳо**: Фармоишҳои қисм-қисм тавассути Alif ва Humo сурат гирифтаанд, қарздории муддаташ гузашта ҳоло ошкор нашудааст.
-• **Маслиҳати АИ**: Барои ҳавасмандгардонии харид, кафолати лаптопҳоро барои моделҳои аз 12,000 TJS боло то 24 моҳ зиёд кунед.`;
+• **Маслиҳати АИ**: Барои ҳавасмандгардонии харид, кафолати лаптопҳоро барои моделҳои аз 12,000 TJS боло ва телефонҳои аз 10,000 TJS боло то 24 моҳ зиёд кунед.`;
       } else if (lang === 'ru') {
         insight = `**Анализ Продаж & Идеи (ИИ Аудит)**:
-• **Покупатели**: Активные пользователи чаще всего покупали марки Lenovo и Apple.
+• **Покупатели**: Активные пользователи чаще всего покупали ноутбуки Lenovo, Apple и смартфоны Samsung.
 • **Задолженности**: Все рассрочки обрабатываются партнерами Alif и Humo, просроченных платежей нет.
-• **Совет ИИ**: Увеличьте гарантию до 24 месяцев на премиум-модели дороже 12 000 TJS, чтобы поднять продажи на 15%.`;
+• **Совет ИИ**: Увеличьте гарантию до 24 месяцев на премиум-модели ноутбуков дороже 12 000 TJS и телефонов дороже 10 000 TJS, чтобы поднять продажи на 15%.`;
       } else {
         insight = `**Sales Analytics & AI Insights**:
-• **Buyers**: Active buyers are purchasing Lenovo and Apple models.
+• **Buyers**: Active buyers are purchasing Lenovo/Apple laptops and Samsung smartphones.
 • **Debtors**: All installment sales are handled by Alif and Humo; no overdue debt alerts are active.
-• **AI Recommendation**: Try increasing the warranty duration to 24 months for high-end laptops (above 12,000 TJS) to drive higher checkout conversions.`;
+• **AI Recommendation**: Try increasing the warranty duration to 24 months for high-end laptops (above 12,000 TJS) and phones (above 10,000 TJS) to drive higher checkout conversions.`;
       }
       setMessages(prev => [...prev, { sender: 'ai', text: insight }]);
       setIsTyping(false);
@@ -126,91 +131,141 @@ export const AIChatbot: React.FC = () => {
     setTimeout(() => {
       let guide = '';
       if (lang === 'tj') {
-        guide = `Барои интихоби лаптоп ба ман нависед. Масалан:
-- *"Лаптопи арзон"* (барои дидани моделҳои то 8000 TJS)
-- *"Барои бозӣ"* (барои дидани лаптопҳои бозикунӣ)
-- *"Барои барномасозӣ"* (барои дидани моделҳо бо RAM 16 ГБ+)`;
+        guide = `Барои интихоби маҳсулот ба ман нависед. Масалан:
+• *"Лаптопи арзон"* (моделҳои то 8000 TJS)
+• *"Телефони хуб"* (смартфонҳо бо RAM 8 ГБ+)
+• *"Барои бозӣ"* (лаптопҳои бозикунӣ бо RTX)
+• *"iPhone 15"* (дидани моделҳои iPhone)`;
       } else if (lang === 'ru') {
-        guide = `Чтобы выбрать ноутбук, напишите мне. Например:
-- *"Покажи дешевые"* (для просмотра моделей до 8000 TJS)
-- *"Игровой ноутбук"* (для просмотра игровых моделей)
-- *"Для программирования"* (для просмотра моделей с RAM от 16 ГБ)`;
+        guide = `Чтобы выбрать товар, напишите мне. Например:
+• *"Покажи дешевые"* (для просмотра моделей до 8000 TJS)
+• *"Хороший телефон"* (смартфоны с ОЗУ от 8 ГБ)
+• *"Ноутбук для игр"* (игровые модели с картой RTX)
+• *"iPhone 15"* (поиск моделей iPhone)`;
       } else {
-        guide = `To find the right laptop, write to me. For example:
-- *"Budget laptops"* (to see models under 8,000 TJS)
-- *"Gaming laptops"* (to see dedicated graphics models)
-- *"Coding laptops"* (to see models with 16GB+ RAM)`;
+        guide = `To find the right product, write to me. For example:
+• *"Budget laptops"* (to see models under 8,000 TJS)
+• *"Best phone"* (smartphones with 8GB+ RAM)
+• *"Gaming laptops"* (to see dedicated RTX graphics models)
+• *"iPhone 15"* (to view iPhone models)`;
       }
       setMessages(prev => [...prev, { sender: 'ai', text: guide }]);
       setIsTyping(false);
     }, 800);
   };
 
-  const generateAIResponse = (queryText: string, storeLaptops: Laptop[], currentLang: string): { text: string; laptops?: Laptop[] } => {
+  const generateAIResponse = (queryText: string, storeLaptops: Laptop[], storePhones: Phone[], currentLang: string): { text: string; laptops?: Laptop[]; phones?: Phone[] } => {
     const query = queryText.toLowerCase();
 
-    // Check direct model match
-    const matchedDirect = storeLaptops.filter(l => 
+    // Check if query is specifically targeting phones
+    const isPhoneQuery = query.includes('phone') || query.includes('телефон') || query.includes('мобил') || query.includes('смартфон') || query.includes('iphone') || query.includes('xiaomi') || query.includes('samsung s24') || query.includes('galaxy') || query.includes('айфон');
+
+    // 1. Check direct phone model match
+    const matchedPhones = storePhones.filter(p => 
+      query.includes(p.model_name.toLowerCase()) || 
+      (query.includes(p.brand.toLowerCase()) && query.includes(p.model_name.split(' ')[0].toLowerCase()))
+    ).slice(0, 3);
+    
+    if (matchedPhones.length > 0) {
+      if (currentLang === 'tj') return { text: `Ман телефонҳои мувофиқро пайдо кардам:`, phones: matchedPhones };
+      if (currentLang === 'ru') return { text: `Я нашёл подходящие модели телефонов:`, phones: matchedPhones };
+      return { text: `I found matching phone models:`, phones: matchedPhones };
+    }
+
+    // 2. Check direct laptop model match
+    const matchedLaptops = storeLaptops.filter(l => 
       query.includes(l.model_name.toLowerCase()) || 
       (query.includes(l.brand.toLowerCase()) && query.includes(l.model_name.split(' ')[0].toLowerCase()))
     ).slice(0, 3);
     
-    if (matchedDirect.length > 0) {
-      if (currentLang === 'tj') return { text: `Ман моделҳои мувофиқро пайдо кардам:`, laptops: matchedDirect };
-      if (currentLang === 'ru') return { text: `Я нашёл подходящие модели:`, laptops: matchedDirect };
-      return { text: `I found matching laptop models:`, laptops: matchedDirect };
+    if (matchedLaptops.length > 0) {
+      if (currentLang === 'tj') return { text: `Ман моделҳои мувофиқро пайдо кардам:`, laptops: matchedLaptops };
+      if (currentLang === 'ru') return { text: `Я нашёл подходящие модели:`, laptops: matchedLaptops };
+      return { text: `I found matching laptop models:`, laptops: matchedLaptops };
     }
 
+    // 3. Cheap/Budget queries
     if (query.includes('budget') || query.includes('cheap') || query.includes('арзон') || query.includes('дешев')) {
-      const cheap = storeLaptops.filter(l => l.price_tjs <= 8000).slice(0, 3);
-      if (cheap.length > 0) {
-        if (currentLang === 'tj') return { text: `Моделҳои арзон ва муносиб (то 8,000 TJS) дар анбор:`, laptops: cheap };
-        if (currentLang === 'ru') return { text: `Бюджетные и доступные модели (до 8 000 TJS) в наличии:`, laptops: cheap };
-        return { text: `Here are our budget-friendly laptops (under 8,000 TJS) in stock:`, laptops: cheap };
+      if (isPhoneQuery) {
+        const cheapPhones = storePhones.filter(p => p.price_tjs <= 6000).slice(0, 3);
+        if (cheapPhones.length > 0) {
+          if (currentLang === 'tj') return { text: `Телефонҳои арзон ва муносиб (то 6,000 TJS) дар анбор:`, phones: cheapPhones };
+          if (currentLang === 'ru') return { text: `Бюджетные и доступные смартфоны (до 6 000 TJS) в наличии:`, phones: cheapPhones };
+          return { text: `Here are our budget-friendly smartphones (under 6,000 TJS) in stock:`, phones: cheapPhones };
+        }
+      } else {
+        const cheap = storeLaptops.filter(l => l.price_tjs <= 8000).slice(0, 3);
+        if (cheap.length > 0) {
+          if (currentLang === 'tj') return { text: `Моделҳои арзон ва муносиб (то 8,000 TJS) дар анбор:`, laptops: cheap };
+          if (currentLang === 'ru') return { text: `Бюджетные и доступные модели (до 8 000 TJS) в наличии:`, laptops: cheap };
+          return { text: `Here are our budget-friendly laptops (under 8,000 TJS) in stock:`, laptops: cheap };
+        }
       }
     }
 
-    if (query.includes('game') || query.includes('gaming') || query.includes('бозӣ') || query.includes('игр')) {
-      const gaming = storeLaptops.filter(l => l.gpu && (l.gpu.toLowerCase().includes('nvidia') || l.gpu.toLowerCase().includes('rtx') || l.gpu.toLowerCase().includes('radeon'))).slice(0, 3);
-      if (gaming.length > 0) {
-        if (currentLang === 'tj') return { text: `Лаптопҳои бозикунии (Gaming) дастрас бо графикаи пурқувват:`, laptops: gaming };
-        if (currentLang === 'ru') return { text: `Игровые ноутбуки с мощными видеокартами в наличии:`, laptops: gaming };
-        return { text: `Here are our gaming laptops with dedicated graphics in stock:`, laptops: gaming };
+    // 4. Gaming / Performance queries
+    if (query.includes('game') || query.includes('gaming') || query.includes('бозӣ') || query.includes('игр') || query.includes('мощн') || query.includes('пурқувват') || query.includes('fast') || query.includes('тез')) {
+      if (isPhoneQuery) {
+        const premiumPhones = storePhones.filter(p => p.ram_gb >= 8).slice(0, 3);
+        if (premiumPhones.length > 0) {
+          if (currentLang === 'tj') return { text: `Телефонҳои пурқувват ва тезкор (RAM 8 ГБ+):`, phones: premiumPhones };
+          if (currentLang === 'ru') return { text: `Мощные и производительные телефоны (ОЗУ 8 ГБ+):`, phones: premiumPhones };
+          return { text: `Here are our high-performance smartphones (8GB+ RAM):`, phones: premiumPhones };
+        }
+      } else {
+        const gaming = storeLaptops.filter(l => l.gpu && (l.gpu.toLowerCase().includes('nvidia') || l.gpu.toLowerCase().includes('rtx') || l.gpu.toLowerCase().includes('radeon'))).slice(0, 3);
+        if (gaming.length > 0) {
+          if (currentLang === 'tj') return { text: `Лаптопҳои бозикунии (Gaming) дастрас бо графикаи пурқувват:`, laptops: gaming };
+          if (currentLang === 'ru') return { text: `Игровые ноутбуки с мощными видеокартами в наличии:`, laptops: gaming };
+          return { text: `Here are our gaming laptops with dedicated graphics in stock:`, laptops: gaming };
+        }
       }
     }
 
-    if (query.includes('code') || query.includes('coding') || query.includes('програм') || query.includes('барнома')) {
-      const coding = storeLaptops.filter(l => l.ram_gb >= 16).slice(0, 3);
-      if (coding.length > 0) {
-        if (currentLang === 'tj') return { text: `Барои барномасозӣ ва корҳои вазнин моделҳои зерини дорои RAM ақаллан 16 ГБ тавсия мешаванд:`, laptops: coding };
-        if (currentLang === 'ru') return { text: `Для программирования рекомендуем следующие модели с объемом оперативной памяти от 16 ГБ:`, laptops: coding };
-        return { text: `For programming and software development, we recommend the following models with at least 16GB RAM:`, laptops: coding };
+    // 5. Battery / Camera specifications
+    if (query.includes('camera') || query.includes('камера') || query.includes('battery') || query.includes('батарея') || query.includes('акс')) {
+      const bestBatteryPhones = [...storePhones].sort((a, b) => b.battery_capacity_mah - a.battery_capacity_mah).slice(0, 3);
+      if (bestBatteryPhones.length > 0) {
+        if (currentLang === 'tj') return { text: `Телефонҳо бо камераи сифати баланд ва батареяи калон:`, phones: bestBatteryPhones };
+        if (currentLang === 'ru') return { text: `Смартфоны с отличной камерой и мощным аккумулятором:`, phones: bestBatteryPhones };
+        return { text: `Here are our smartphones with great cameras and battery capacity:`, phones: bestBatteryPhones };
       }
     }
 
-    // Specific brand query matching
-    const brands = ['asus', 'lenovo', 'hp', 'dell', 'apple', 'acer', 'msi', 'samsung'];
-    for (const b of brands) {
-      if (query.includes(b)) {
-        const matched = storeLaptops.filter(l => l.brand.toLowerCase() === b).slice(0, 3);
-        if (matched.length > 0) {
-          if (currentLang === 'tj') return { text: `Лаптопҳои дастраси бренди **${b.toUpperCase()}**:`, laptops: matched };
-          if (currentLang === 'ru') return { text: `Доступные модели бренда **${b.toUpperCase()}**:`, laptops: matched };
-          return { text: `Available laptops from **${b.toUpperCase()}**:`, laptops: matched };
-        } else {
-          if (currentLang === 'tj') return { text: `Мутаассифона, дар айни замон ягон лаптопи бренди ${b.toUpperCase()} дар анбор нест.` };
-          if (currentLang === 'ru') return { text: `К сожалению, в данный момент ноутбуков бренда ${b.toUpperCase()} нет на складе.` };
-          return { text: `Sorry, we currently don't have any ${b.toUpperCase()} laptops in stock.` };
+    // 6. Specific brand queries
+    const phoneBrands = ['apple', 'samsung', 'xiaomi'];
+    const laptopBrands = ['asus', 'lenovo', 'hp', 'dell', 'apple', 'acer', 'msi', 'samsung'];
+    
+    if (isPhoneQuery) {
+      for (const b of phoneBrands) {
+        if (query.includes(b)) {
+          const matched = storePhones.filter(p => p.brand.toLowerCase() === b).slice(0, 3);
+          if (matched.length > 0) {
+            if (currentLang === 'tj') return { text: `Телефонҳои дастраси бренди **${b.toUpperCase()}**:`, phones: matched };
+            if (currentLang === 'ru') return { text: `Доступные телефоны бренда **${b.toUpperCase()}**:`, phones: matched };
+            return { text: `Available phones from **${b.toUpperCase()}**:`, phones: matched };
+          }
+        }
+      }
+    } else {
+      for (const b of laptopBrands) {
+        if (query.includes(b)) {
+          const matched = storeLaptops.filter(l => l.brand.toLowerCase() === b).slice(0, 3);
+          if (matched.length > 0) {
+            if (currentLang === 'tj') return { text: `Лаптопҳои дастраси бренди **${b.toUpperCase()}**:`, laptops: matched };
+            if (currentLang === 'ru') return { text: `Доступные модели бренда **${b.toUpperCase()}**:`, laptops: matched };
+            return { text: `Available laptops from **${b.toUpperCase()}**:`, laptops: matched };
+          }
         }
       }
     }
 
     if (currentLang === 'tj') {
-      return { text: `Ман ёвари АИ ҳастам ва метавонам ба шумо дар интихоби лаптоп кумак кунам. Шумо метавонед савол диҳед, масалан:\n\n- "Кадом лаптопҳо барои бозӣ мувофиқанд?"\n- "Лаптопи арзон нишон деҳ"\n- "Лаптопҳои Apple доред?"` };
+      return { text: `Ман ёвари АИ ҳастам ва метавонам ба шумо дар интихоби лаптоп ё телефон кумак кунам. Шумо метавонед савол диҳед, масалан:\n\n• "Кадом телефонҳо батареяи калон доранд?"\n• "Ифони арзон нишон деҳ"\n• "Лаптопи бозикунӣ доред?"\n• "Телефонҳои Samsung"` };
     } else if (currentLang === 'ru') {
-      return { text: `Я ИИ-ассистент и могу помочь вам подобрать ноутбук. Вы можете спросить меня:\n\n- "Какие ноутбуки подходят для игр?"\n- "Покажи бюджетные ноутбуки"\n- "Есть ли в наличии Apple MacBook?"` };
+      return { text: `Я ИИ-ассистент и могу помочь вам подобрать ноутбук или телефон. Вы можете спросить меня:\n\n• "У каких телефонов большая батарея?"\n• "Покажи дешевые айфоны"\n• "Какие ноутбуки подходят для игр?"\n• "Есть ли в наличии Samsung?"` };
     }
-    return { text: `I am an AI assistant and I can help you find the right laptop. Try asking me:\n\n- "Recommend a budget laptop"\n- "Show me coding laptops"\n- "Are there any Apple MacBooks in stock?"` };
+    return { text: `I am an AI assistant and I can help you find the right laptop or phone. Try asking me:\n\n• "Which phones have the best battery?"\n• "Show me cheap iPhones"\n• "Recommend a gaming laptop"\n• "Do you have Samsung phones in stock?"` };
   };
 
   const handleSend = () => {
@@ -221,8 +276,11 @@ export const AIChatbot: React.FC = () => {
     setIsTyping(true);
 
     setTimeout(() => {
-      const aiReply = generateAIResponse(userMsg, laptops, lang);
-      setMessages(prev => [...prev, { sender: 'ai', text: aiReply.text, laptops: aiReply.laptops }]);
+      const aiReply = generateAIResponse(userMsg, laptops, phones, lang);
+      setMessages(prev => [
+        ...prev, 
+        { sender: 'ai', text: aiReply.text, laptops: aiReply.laptops, phones: aiReply.phones }
+      ]);
       setIsTyping(false);
     }, 800);
   };
@@ -378,8 +436,8 @@ export const AIChatbot: React.FC = () => {
                       <BookOpen size={16} style={{ color: 'var(--primary)' }} />
                       <span>
                         {lang === 'en' && 'Shopping Assistant Guide'}
-                        {lang === 'ru' && 'Гид по покупкам ноутбуков'}
-                        {lang === 'tj' && 'Роҳнамои хариди лаптопҳо'}
+                        {lang === 'ru' && 'Гид по покупкам'}
+                        {lang === 'tj' && 'Роҳнамои харид'}
                       </span>
                     </button>
 
@@ -499,10 +557,73 @@ export const AIChatbot: React.FC = () => {
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
                                       <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {laptop.brand} {laptop.model_name}
+                                        💻 {laptop.brand} {laptop.model_name}
                                       </span>
                                       <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>
                                         {laptop.price_tjs.toLocaleString()} TJS
+                                      </span>
+                                    </div>
+                                    <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', textDecoration: 'underline', flexShrink: 0, paddingRight: '0.2rem' }}>
+                                      {lang === 'en' ? 'View' : lang === 'ru' ? 'Смотреть' : 'Дидан'}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Render matched phones as clickable visual cards in chat */}
+                          {m.phones && m.phones.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.1rem' }}>
+                              {m.phones.map(phone => {
+                                const gallery = getPhoneGallery(phone.brand, phone.model_name, 100);
+                                const thumbnail = gallery[0];
+                                return (
+                                  <div
+                                    key={phone.id}
+                                    onClick={() => {
+                                      setIsOpen(false);
+                                      navigate(`/catalog/phone/${phone.id}`);
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.6rem',
+                                      padding: '0.4rem 0.6rem',
+                                      background: 'var(--bg-surface)',
+                                      border: '1px solid var(--border)',
+                                      borderRadius: '12px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.18s ease-in-out',
+                                    }}
+                                    onMouseEnter={e => {
+                                      e.currentTarget.style.borderColor = 'var(--border-primary)';
+                                      e.currentTarget.style.transform = 'translateY(-1px)';
+                                    }}
+                                    onMouseLeave={e => {
+                                      e.currentTarget.style.borderColor = 'var(--border)';
+                                      e.currentTarget.style.transform = 'none';
+                                    }}
+                                  >
+                                    <div style={{
+                                      width: 38, height: 38, borderRadius: 6,
+                                      background: '#000', overflow: 'hidden', display: 'flex',
+                                      alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                    }}>
+                                      {thumbnail ? (
+                                        <img src={thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                      ) : (
+                                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                                          {phone.brand.substring(0, 2).toUpperCase()}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+                                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        📱 {phone.brand} {phone.model_name}
+                                      </span>
+                                      <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>
+                                        {phone.price_tjs.toLocaleString()} TJS
                                       </span>
                                     </div>
                                     <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', textDecoration: 'underline', flexShrink: 0, paddingRight: '0.2rem' }}>
