@@ -32,5 +32,6 @@ COPY --from=frontend-builder /app/frontend/build ./frontend/build
 # Railway provides a dynamic port, expose it
 EXPOSE 8000
 
-# Start command: run Alembic migrations, then start FastAPI application
-CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port $PORT
+# Start command: run Alembic migrations, seed database, then start FastAPI application
+CMD alembic upgrade head && python scripts/seed.py && uvicorn src.main:app --host 0.0.0.0 --port $PORT
+
