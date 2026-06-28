@@ -179,6 +179,30 @@ SEED_PHONES = [
         color="Midnight Blue", price_tjs=8200.00, stock_quantity=12, warranty_months=12,
         description="Телефони боэътимод ва машҳур — мувофиқи нарх ва сифати хуб.",
     ),
+    dict(
+        brand="Samsung", model_name="Galaxy A55", cpu="Exynos 1480",
+        ram_gb=8, storage_gb=256, screen_size_inches=6.6, battery_capacity_mah=5000,
+        color="Awesome Iceblue", price_tjs=5200.00, stock_quantity=20, warranty_months=12,
+        description="Телефони олиҷаноби миёнаҳаҷм бо экрани зебо ва муҳофизати об.",
+    ),
+    dict(
+        brand="Xiaomi", model_name="Xiaomi 14", cpu="Snapdragon 8 Gen 3",
+        ram_gb=12, storage_gb=512, screen_size_inches=6.36, battery_capacity_mah=4610,
+        color="Jade Green", price_tjs=11500.00, stock_quantity=6, warranty_months=12,
+        description="Флагмани паймон бо камераҳои Leica ва иҷроиши бениҳоят тез.",
+    ),
+    dict(
+        brand="Apple", model_name="iPhone 15", cpu="Apple A16 Bionic",
+        ram_gb=6, storage_gb=128, screen_size_inches=6.1, battery_capacity_mah=3349,
+        color="Black", price_tjs=11800.00, stock_quantity=10, warranty_months=12,
+        description="Айфони муосир бо ҷазираи динамикӣ (Dynamic Island) ва камераи 48MP.",
+    ),
+    dict(
+        brand="Samsung", model_name="Galaxy S23 FE", cpu="Exynos 2200",
+        ram_gb=8, storage_gb=128, screen_size_inches=6.4, battery_capacity_mah=4500,
+        color="Mint", price_tjs=7200.00, stock_quantity=8, warranty_months=12,
+        description="Нашри махсуси флагман бо ҳама хусусиятҳои муҳим ва нархи муносиб.",
+    ),
 ]
 
 
