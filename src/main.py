@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.core.config import settings
 from src.api.dependencies import get_current_admin_user
-from src.api.routes import users, laptops, admin, brands, stats
+from src.api.routes import users, laptops, admin, brands, stats, orders
 from src.api import ws
 
 app = FastAPI(
@@ -23,6 +23,7 @@ app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["u
 app.include_router(laptops.router, prefix=f"{settings.API_V1_STR}/laptops", tags=["laptops"])
 app.include_router(brands.router, prefix=f"{settings.API_V1_STR}/brands", tags=["brands"])
 app.include_router(stats.router, prefix=f"{settings.API_V1_STR}/stats", tags=["stats"])
+app.include_router(orders.router, prefix=f"{settings.API_V1_STR}/orders", tags=["orders"])
 app.include_router(ws.router, prefix=settings.API_V1_STR, tags=["ws"])
 app.include_router(
     admin.router,
