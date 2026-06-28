@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, ShoppingBag, Package, Users as UsersIcon, Sparkles, Brain, Loader } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Package, Users as UsersIcon, Sparkles, Brain, Loader, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { Button } from '../components/ui/Button';
@@ -7,13 +7,14 @@ import { Laptop, LaptopUpdateInput, getLaptops, updateLaptop, deleteLaptop, reco
 import { getAllUsers, updateUser, deleteUser } from '../api/admin';
 import { User } from '../api/auth';
 import { StatsOverview, MonthlySalesPoint, BrandPerformancePoint, getAdminStatsOverview, getAdminStatsMonthly, getAdminStatsBrands } from '../api/stats';
+import { getAllOrders, updateOrderStatus, Order } from '../api/orders';
 import { StatCard } from '../components/charts/StatCard';
 import { RevenueTrendChart } from '../components/charts/RevenueTrendChart';
 import { BrandPerformanceChart } from '../components/charts/BrandPerformanceChart';
 import '../components/charts/charts.css';
 import './Admin.css';
 
-type Tab = 'overview' | 'listings' | 'users' | 'ai';
+type Tab = 'overview' | 'listings' | 'users' | 'ai' | 'orders';
 
 export const Admin: React.FC = () => {
   const { user } = useAuth();
@@ -43,13 +44,30 @@ export const Admin: React.FC = () => {
   const [salesAnalysis, setSalesAnalysis] = useState<string[]>([]);
   const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
 
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
+
   useEffect(() => {
     getLaptops().then(setLaptops).catch(() => {}).finally(() => setLoadingLaptops(false));
     getAllUsers().then(setUsers).catch(() => {}).finally(() => setLoadingUsers(false));
     getAdminStatsOverview().then(setOverview).catch(() => {});
     getAdminStatsMonthly().then(setMonthly).catch(() => {});
     getAdminStatsBrands().then(setBrandPerf).catch(() => {});
+    getAllOrders().then(setOrders).catch(() => {}).finally(() => setLoadingOrders(false));
   }, []);
+
+  const handleStatusChange = async (orderId: number, newStatus: string) => {
+    setUpdatingOrderId(orderId);
+    try {
+      const updated = await updateOrderStatus(orderId, newStatus);
+      setOrders(prev => prev.map(o => o.id === orderId ? updated : o));
+    } catch {
+      alert('Could not update order status.');
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
 
   const ownerEmail = (ownerId?: number | null) =>
     ownerId == null ? null : users.find(u => u.id === ownerId)?.email ?? `#${ownerId}`;
@@ -225,6 +243,13 @@ export const Admin: React.FC = () => {
             >
               <UsersIcon size={16} />
               <span>{t('manageUsers')}</span>
+            </button>
+            <button
+              className={`admin-tab-vertical ${tab === 'orders' ? 'active' : ''}`}
+              onClick={() => setTab('orders')}
+            >
+              <ShoppingCart size={16} />
+              <span>{t('ordersTab')}</span>
             </button>
             <button
               className={`admin-tab-vertical ${tab === 'ai' ? 'active' : ''}`}
@@ -530,6 +555,77 @@ export const Admin: React.FC = () => {
                 })}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {tab === 'orders' && (
+        <div className="admin-section">
+          {!loadingOrders && orders.length === 0 && <p className="admin-empty">{t('noOrdersAdmin')}</p>}
+          <div className="admin-table">
+            {orders.map(order => (
+              <div key={order.id} className="admin-row" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '1rem', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div className="admin-row-main" style={{ flex: 1, minWidth: '240px' }}>
+                    <div className="admin-row-title" style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <ShoppingCart size={16} style={{ color: 'var(--primary)' }} />
+                      <span>{t('orderNumber')}{order.id}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 400 }}>
+                        ({new Date(order.created_at).toLocaleString()})
+                      </span>
+                    </div>
+                    <div className="admin-row-sub" style={{ marginTop: '0.4rem', flexDirection: 'column', alignItems: 'flex-start', gap: '0.2rem' }}>
+                      <span><strong>{t('laptopWord')}:</strong> {order.laptop ? `${order.laptop.brand} ${order.laptop.model_name}` : `Laptop ID: ${order.laptop_id}`}</span>
+                      <span><strong>Customer:</strong> {order.user ? `${order.user.username || 'No username'} (${order.user.email})` : `User ID: ${order.user_id}`}</span>
+                      {order.user?.phone && <span><strong>Phone:</strong> {order.user.phone}</span>}
+                      {order.user?.address && <span><strong>Address:</strong> {order.user.address}</span>}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.4rem', minWidth: '150px' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary)' }}>
+                      {new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(order.total_price)} TJS
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                      {order.payment_method} {order.installment_months ? `(${order.installment_months} ${t('months')})` : `(${t('fullPayment')})`}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.2rem' }}>
+                      <span className={`admin-badge admin-badge-${order.status}`} style={{
+                        borderColor: order.status === 'completed' ? 'rgba(94, 163, 120, 0.35)' : order.status === 'cancelled' ? 'rgba(195, 108, 108, 0.35)' : 'var(--border-primary)',
+                        color: order.status === 'completed' ? 'var(--success)' : order.status === 'cancelled' ? 'var(--danger)' : 'var(--primary)'
+                      }}>
+                        {order.status === 'pending' && t('orderStatusPending')}
+                        {order.status === 'processing' && t('orderStatusProcessing')}
+                        {order.status === 'completed' && t('orderStatusCompleted')}
+                        {order.status === 'cancelled' && t('orderStatusCancelled')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status controls */}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: '0.8rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('changeStatus')}:</span>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    {['pending', 'processing', 'completed', 'cancelled'].map(st => (
+                      <Button
+                        key={st}
+                        size="sm"
+                        variant={order.status === st ? 'primary' : 'outline'}
+                        disabled={updatingOrderId === order.id}
+                        onClick={() => handleStatusChange(order.id, st)}
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                      >
+                        {st === 'pending' && t('orderStatusPending')}
+                        {st === 'processing' && t('orderStatusProcessing')}
+                        {st === 'completed' && t('orderStatusCompleted')}
+                        {st === 'cancelled' && t('orderStatusCancelled')}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
