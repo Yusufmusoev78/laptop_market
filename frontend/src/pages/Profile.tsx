@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, BarChart3, Mail, Building2, Laptop, Package, Plus, Phone } from 'lucide-react';
+import { LogOut, BarChart3, Mail, Building2, Laptop, Package, Plus, Phone, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { Button } from '../components/ui/Button';
@@ -9,6 +9,7 @@ import { LaptopCard } from '../components/ui/LaptopCard';
 import { createLaptop, getMyLaptops, recordSale, Laptop as LaptopType, LaptopCreateInput } from '../api/laptops';
 import { updateProfile, ProfileUpdateInput } from '../api/auth';
 import { getMyBrands, Brand } from '../api/brands';
+import { getMyOrders, Order } from '../api/orders';
 import './Profile.css';
 
 const emptyForm: Omit<LaptopCreateInput, 'brand_id'> = {
@@ -46,9 +47,13 @@ export const Profile: React.FC = () => {
   const [profileError, setProfileError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
   useEffect(() => {
     getMyLaptops().then(setMyLaptops).catch(() => {}).finally(() => setLoadingListings(false));
     getMyBrands().then(setBrands).catch(() => {}).finally(() => setLoadingBrands(false));
+    getMyOrders().then(setOrders).catch(() => {}).finally(() => setLoadingOrders(false));
   }, []);
 
   useEffect(() => {
@@ -357,6 +362,77 @@ export const Profile: React.FC = () => {
                 {saleMessage?.id === l.id && <span className="sale-message">{saleMessage.text}</span>}
               </div>
             ))}
+          </div>
+        )}
+      </motion.div>
+
+      <motion.div className="profile-section" initial="hidden" animate="show" custom={5} variants={sectionVariants}>
+        <h2 className="profile-section-title">
+          <ShoppingCart size={16} style={{ color: 'var(--primary)', marginRight: '8px', verticalAlign: 'middle' }} />
+          {t('myOrders')}
+        </h2>
+        {!loadingOrders && orders.length === 0 && (
+          <div className="profile-empty">
+            <ShoppingCart size={26} />
+            <p>{t('noOrdersYet')}</p>
+          </div>
+        )}
+        {orders.length > 0 && (
+          <div className="orders-table-wrapper" style={{ overflowX: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1rem' }}>
+            <table className="orders-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
+                  <th style={{ padding: '0.75rem' }}>{t('orderNumber')}</th>
+                  <th style={{ padding: '0.75rem' }}>{t('laptopWord')}</th>
+                  <th style={{ padding: '0.75rem' }}>{t('orderDate')}</th>
+                  <th style={{ padding: '0.75rem' }}>{t('paymentMethod')}</th>
+                  <th style={{ padding: '0.75rem' }}>{t('installmentPlan')}</th>
+                  <th style={{ padding: '0.75rem' }}>{t('orderTotal')}</th>
+                  <th style={{ padding: '0.75rem' }}>{t('orderStatus')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map(o => (
+                  <tr key={o.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '0.75rem', fontWeight: 600 }}>#{o.id}</td>
+                    <td style={{ padding: '0.75rem' }}>
+                      {o.laptop ? (
+                        <Link to={`/catalog/${o.laptop.id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+                          {o.laptop.brand} {o.laptop.model_name}
+                        </Link>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>
+                      {new Date(o.created_at).toLocaleDateString()}
+                    </td>
+                    <td style={{ padding: '0.75rem', textTransform: 'uppercase' }}>{o.payment_method}</td>
+                    <td style={{ padding: '0.75rem' }}>
+                      {o.installment_months ? `${o.installment_months} ${t('months')}` : t('fullPayment')}
+                    </td>
+                    <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(o.total_price)} TJS
+                    </td>
+                    <td style={{ padding: '0.75rem' }}>
+                      <span className={`admin-badge admin-badge-${o.status}`} style={{
+                        padding: '0.2rem 0.5rem',
+                        fontSize: '0.7rem',
+                        borderRadius: '4px',
+                        border: '1px solid',
+                        borderColor: o.status === 'completed' ? 'rgba(94, 163, 120, 0.35)' : o.status === 'cancelled' ? 'rgba(195, 108, 108, 0.35)' : 'var(--border-primary)',
+                        color: o.status === 'completed' ? 'var(--success)' : o.status === 'cancelled' ? 'var(--danger)' : 'var(--primary)'
+                      }}>
+                        {o.status === 'pending' && t('orderStatusPending')}
+                        {o.status === 'processing' && t('orderStatusProcessing')}
+                        {o.status === 'completed' && t('orderStatusCompleted')}
+                        {o.status === 'cancelled' && t('orderStatusCancelled')}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </motion.div>
