@@ -27,6 +27,7 @@ from src.models.user import User
 from src.models.laptop import Laptop
 from src.models.brand import Brand
 from src.models.sale import Sale
+from src.models.order import Order
 target_metadata = Base.metadata
 
 from src.core.config import settings
