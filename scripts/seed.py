@@ -12,6 +12,10 @@ from src.core.security import get_password_hash
 from src.db.session import async_session_maker
 from src.models.laptop import Laptop
 from src.models.user import User
+from src.models.brand import Brand
+from src.models.sale import Sale
+from src.models.order import Order
+
 
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@somoncomp.tj")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ChangeMe123!")
