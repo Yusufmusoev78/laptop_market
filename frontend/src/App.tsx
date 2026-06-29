@@ -18,6 +18,7 @@ import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
 import { BrandOnboarding } from './pages/BrandOnboarding';
 import { MyStats } from './pages/MyStats';
+import { PCBuilder } from './pages/PCBuilder';
 import { AIChatbot } from './components/ui/AIChatbot';
 import { MarketProvider } from './context/MarketContext';
 import './App.css';
@@ -44,6 +45,7 @@ function App() {
                       <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
                       <Route path="/brands/new" element={<RequireAuth><BrandOnboarding /></RequireAuth>} />
                       <Route path="/my-stats" element={<RequireAuth><MyStats /></RequireAuth>} />
+                      <Route path="/pc-builder" element={<PCBuilder />} />
                       <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
                     </Routes>
                   </main>

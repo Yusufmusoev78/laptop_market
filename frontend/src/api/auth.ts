@@ -57,6 +57,11 @@ export const login = async (email: string, password: string): Promise<string> =>
   return response.data.access_token;
 };
 
+export const loginGoogle = async (idToken: string): Promise<string> => {
+  const response = await apiClient.post('/users/login/google', { id_token: idToken });
+  return response.data.access_token;
+};
+
 export const getMe = async (): Promise<User> => {
   const response = await apiClient.get('/users/me');
   return response.data;

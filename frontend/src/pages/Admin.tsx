@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { TrendingUp, ShoppingBag, Package, Users as UsersIcon, Sparkles, Brain, Loader, ShoppingCart } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Package, Users as UsersIcon, Sparkles, Brain, Loader, ShoppingCart, Laptop as LaptopIcon, Smartphone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { Button } from '../components/ui/Button';
@@ -377,13 +377,13 @@ export const Admin: React.FC = () => {
                             </span>
                             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                               {laptopCount > 0 && (
-                                <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '20px', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
-                                  💻 {laptopCount} {t('laptopWord')}
+                                <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '20px', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                                  <LaptopIcon size={12} /> {laptopCount} {t('laptopWord')}
                                 </span>
                               )}
                               {phoneCount > 0 && (
-                                <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '20px', background: 'rgba(96, 165, 250, 0.1)', color: '#60a5fa', border: '1px solid rgba(96, 165, 250, 0.2)' }}>
-                                  📱 {phoneCount} {lang === 'tj' ? 'Телефон' : lang === 'ru' ? 'Телефон' : 'Phone'}
+                                <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: '20px', background: 'rgba(96, 165, 250, 0.1)', color: '#60a5fa', border: '1px solid rgba(96, 165, 250, 0.2)', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                                  <Smartphone size={12} /> {phoneCount} {lang === 'tj' ? 'Телефон' : lang === 'ru' ? 'Телефон' : 'Phone'}
                                 </span>
                               )}
                             </div>
@@ -476,7 +476,7 @@ export const Admin: React.FC = () => {
                                   <div style={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
                                     <div className="admin-row-main">
                                       <span className="admin-row-title" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                        {product.type === 'laptop' ? '💻' : '📱'}
+                                        {product.type === 'laptop' ? <LaptopIcon size={14} style={{ color: 'var(--primary)' }} /> : <Smartphone size={14} style={{ color: 'var(--primary)' }} />}
                                         {product.brand} {product.model_name}
                                       </span>
                                       <span className="admin-row-sub">
@@ -725,9 +725,13 @@ export const Admin: React.FC = () => {
                           <span>
                             <strong>{lang === 'tj' ? 'Маҳсулот' : lang === 'ru' ? 'Товар' : 'Product'}:</strong>{' '}
                             {order.laptop ? (
-                              `💻 ${order.laptop.brand} ${order.laptop.model_name}`
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <LaptopIcon size={13} style={{ color: 'var(--primary)' }} /> {order.laptop.brand} {order.laptop.model_name}
+                              </span>
                             ) : order.phone ? (
-                              `📱 ${order.phone.brand} ${order.phone.model_name}`
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <Smartphone size={13} style={{ color: 'var(--primary)' }} /> {order.phone.brand} {order.phone.model_name}
+                              </span>
                             ) : (
                               `Product ID: ${order.laptop_id || order.phone_id}`
                             )}

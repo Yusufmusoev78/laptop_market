@@ -63,3 +63,26 @@
 }
 .auth-switch a { color: var(--primary); font-weight: 600; text-decoration: none; margin-left: 0.3rem; }
 .auth-switch a:hover { text-decoration: underline; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.25rem 0;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-strong);
+}
+.auth-divider:not(:empty)::before {
+  margin-right: .75em;
+}
+.auth-divider:not(:empty)::after {
+  margin-left: .75em;
+}

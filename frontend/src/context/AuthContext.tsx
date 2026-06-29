@@ -6,6 +6,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   signup: (data: authApi.SignupInput) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   loading: true,
   login: async () => {},
+  loginWithGoogle: async () => {},
   signup: async () => {},
   logout: () => {},
   refreshUser: async () => {},
@@ -41,6 +43,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(me);
   }, []);
 
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    const token = await authApi.loginGoogle(idToken);
+    localStorage.setItem('token', token);
+    const me = await authApi.getMe();
+    setUser(me);
+  }, []);
+
   const signup = useCallback(async (data: authApi.SignupInput) => {
     await authApi.signup(data);
     await login(data.email, data.password);
@@ -57,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, signup, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, loginWithGoogle, signup, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

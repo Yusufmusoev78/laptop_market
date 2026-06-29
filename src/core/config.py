@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "SUPER-SECRET-KEY-CHANGE-IN-PRODUCTION"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     ALGORITHM: str = "HS256"
+    GOOGLE_CLIENT_ID: str = "176459583485-1lpnthblnajp23sqicmhu933qck8mb46.apps.googleusercontent.com"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

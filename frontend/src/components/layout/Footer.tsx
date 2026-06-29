@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Gem, Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Gem, Mail, Phone, MapPin, Send, Laptop, Smartphone } from 'lucide-react';
 import { useLang } from '../../context/LanguageContext';
 import { useMarket } from '../../context/MarketContext';
 import { useAuth } from '../../context/AuthContext';
@@ -112,13 +112,13 @@ export const Footer: React.FC = () => {
           <h4 className="footer-heading">{text.markets}</h4>
           <ul className="footer-links-list">
             <li>
-              <NavLink to="/catalog" onClick={() => setMarketMode('laptop')}>
-                💻 {text.laptopsLink}
+              <NavLink to="/catalog" onClick={() => setMarketMode('laptop')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Laptop size={14} style={{ color: 'var(--primary)' }} /> {text.laptopsLink}
               </NavLink>
             </li>
             <li>
-              <NavLink to="/catalog" onClick={() => setMarketMode('phone')}>
-                📱 {text.phonesLink}
+              <NavLink to="/catalog" onClick={() => setMarketMode('phone')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Smartphone size={14} style={{ color: 'var(--primary)' }} /> {text.phonesLink}
               </NavLink>
             </li>
           </ul>

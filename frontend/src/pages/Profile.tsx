@@ -545,12 +545,12 @@ export const Profile: React.FC = () => {
                     <td style={{ padding: '0.75rem', fontWeight: 600 }}>#{o.id}</td>
                     <td style={{ padding: '0.75rem' }}>
                       {o.laptop ? (
-                        <Link to={`/catalog/${o.laptop.id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
-                          💻 {o.laptop.brand} {o.laptop.model_name}
+                        <Link to={`/catalog/${o.laptop.id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <Laptop size={14} /> {o.laptop.brand} {o.laptop.model_name}
                         </Link>
                       ) : o.phone ? (
-                        <Link to={`/catalog/phone/${o.phone.id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
-                          📱 {o.phone.brand} {o.phone.model_name}
+                        <Link to={`/catalog/phone/${o.phone.id}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <Smartphone size={14} /> {o.phone.brand} {o.phone.model_name}
                         </Link>
                       ) : (
                         '—'

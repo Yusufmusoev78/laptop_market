@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Sparkles, Loader, Trash2, Menu, Brain, BookOpen, Camera } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, Loader, Trash2, Menu, Brain, BookOpen, Camera, Laptop as LaptopIcon, Smartphone as PhoneIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getLaptops, Laptop } from '../../api/laptops';
 import { getLaptopGallery } from '../../utils/laptopImages';
@@ -636,8 +636,8 @@ export const AIChatbot: React.FC = () => {
                                       )}
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-                                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        💻 {laptop.brand} {laptop.model_name}
+                                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <LaptopIcon size={13} style={{ color: 'var(--primary)' }} /> {laptop.brand} {laptop.model_name}
                                       </span>
                                       <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>
                                         {laptop.price_tjs.toLocaleString()} TJS
@@ -699,8 +699,8 @@ export const AIChatbot: React.FC = () => {
                                       )}
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-                                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        📱 {phone.brand} {phone.model_name}
+                                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <PhoneIcon size={13} style={{ color: 'var(--primary)' }} /> {phone.brand} {phone.model_name}
                                       </span>
                                       <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}>
                                         {phone.price_tjs.toLocaleString()} TJS
