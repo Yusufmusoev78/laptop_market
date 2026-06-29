@@ -1,48 +1,48 @@
 import apiClient from './client';
 
 export interface Laptop {
-  id: number; // 🆔 Unique identifier
-  owner_id?: number | null; // 👤 Owner's user ID
-  brand: string; // 🏷️ Brand name
-  brand_id?: number | null; // 🏢 Brand identifier
-  model_name: string; // 📝 Model name
-  cpu: string; // ⚙️ Processor type
-  ram_gb: number; // 🧠 RAM in GB
-  storage_gb: number; // 💾 Storage in GB
-  gpu?: string; // 🎮 Graphics processor
-  price_tjs: number; // 💰 Price in TJS
-  stock_quantity: number; // 📦 Available stock
-  keyboard_layout: string; // ⌨️ Keyboard layout
-  warranty_months: number; // 🛡️ Warranty duration
-  description?: string; // 📄 Product description
+  id: number; // [icon-id] Unique identifier
+  owner_id?: number | null; // [icon-user] Owner's user ID
+  brand: string; // [icon-tag] Brand name
+  brand_id?: number | null; // [icon-building] Brand identifier
+  model_name: string; // [icon-edit] Model name
+  cpu: string; // [icon-cpu] Processor type
+  ram_gb: number; // [icon-memory] RAM in GB
+  storage_gb: number; // [icon-database] Storage in GB
+  gpu?: string; // [icon-gpu] Graphics processor
+  price_tjs: number; // [icon-dollar] Price in TJS
+  stock_quantity: number; // [icon-box] Available stock
+  keyboard_layout: string; // [icon-keyboard] Keyboard layout
+  warranty_months: number; // [icon-shield] Warranty duration
+  description?: string; // [icon-file-text] Product description
 }
 
 export interface LaptopCreateInput {
-  brand_id: number; // 🏢 Brand identifier
-  model_name: string; // 📝 Model name
-  cpu: string; // ⚙️ Processor type
-  ram_gb: number; // 🧠 RAM in GB
-  storage_gb: number; // 💾 Storage in GB
-  gpu?: string; // 🎮 Graphics processor
-  price_tjs: number; // 💰 Price in TJS
-  stock_quantity: number; // 📦 Available stock
-  keyboard_layout: string; // ⌨️ Keyboard layout
-  warranty_months: number; // 🛡️ Warranty duration
-  description?: string; // 📄 Product description
+  brand_id: number; // [icon-building] Brand identifier
+  model_name: string; // [icon-edit] Model name
+  cpu: string; // [icon-cpu] Processor type
+  ram_gb: number; // [icon-memory] RAM in GB
+  storage_gb: number; // [icon-database] Storage in GB
+  gpu?: string; // [icon-gpu] Graphics processor
+  price_tjs: number; // [icon-dollar] Price in TJS
+  stock_quantity: number; // [icon-box] Available stock
+  keyboard_layout: string; // [icon-keyboard] Keyboard layout
+  warranty_months: number; // [icon-shield] Warranty duration
+  description?: string; // [icon-file-text] Product description
 }
 
 export interface LaptopUpdateInput {
-  brand?: string; // 🏷️ Brand name
-  model_name?: string; // 📝 Model name
-  cpu?: string; // ⚙️ Processor type
-  ram_gb?: number; // 🧠 RAM in GB
-  storage_gb?: number; // 💾 Storage in GB
-  gpu?: string; // 🎮 Graphics processor
-  price_tjs?: number; // 💰 Price in TJS
-  stock_quantity?: number; // 📦 Available stock
-  keyboard_layout?: string; // ⌨️ Keyboard layout
-  warranty_months?: number; // 🛡️ Warranty duration
-  description?: string; // 📄 Product description
+  brand?: string; // [icon-tag] Brand name
+  model_name?: string; // [icon-edit] Model name
+  cpu?: string; // [icon-cpu] Processor type
+  ram_gb?: number; // [icon-memory] RAM in GB
+  storage_gb?: number; // [icon-database] Storage in GB
+  gpu?: string; // [icon-gpu] Graphics processor
+  price_tjs?: number; // [icon-dollar] Price in TJS
+  stock_quantity?: number; // [icon-box] Available stock
+  keyboard_layout?: string; // [icon-keyboard] Keyboard layout
+  warranty_months?: number; // [icon-shield] Warranty duration
+  description?: string; // [icon-file-text] Product description
 }
 
 export const getLaptops = async (): Promise<Laptop[]> => {
