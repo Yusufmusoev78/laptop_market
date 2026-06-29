@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Cpu, HardDrive, MemoryStick, Zap, ShieldCheck, Keyboard, ShoppingCart, ArrowLeft, Package, Laptop as LaptopIcon, CreditCard, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Cpu, HardDrive, MemoryStick, Zap, ShieldCheck, Keyboard, ShoppingCart, ArrowLeft, Package, Laptop as LaptopIcon, CreditCard, Check, X } from 'lucide-react';
 import { getLaptops, Laptop } from '../api/laptops';
 import { getLaptopGallery } from '../utils/laptopImages';
 import { LaptopCard } from '../components/ui/LaptopCard';
@@ -28,6 +28,7 @@ export const LaptopDetail: React.FC = () => {
   const [installmentMonths, setInstallmentMonths] = useState<number>(12);
   const [selectedPayment, setSelectedPayment] = useState<string>('alif');
   const [buying, setBuying] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const handleBuy = async () => {
     if (!user) {
@@ -133,7 +134,7 @@ export const LaptopDetail: React.FC = () => {
 
         {/* Left — image gallery */}
         <div className="detail-image-wrap">
-          <div className="detail-image-container">
+          <div className="detail-image-container" onClick={() => setIsZoomed(true)} style={{ cursor: 'zoom-in' }}>
             {!allBroken ? (
               <>
                 {gallery.map((src, i) => (
@@ -412,6 +413,64 @@ export const LaptopDetail: React.FC = () => {
           </div>
         </section>
       )}
+
+      <AnimatePresence>
+        {isZoomed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsZoomed(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1100,
+              background: 'rgba(0,0,0,0.9)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'zoom-out',
+              padding: '2rem'
+            }}
+          >
+            <motion.img
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              src={gallery[activeImg]}
+              alt="Zoomed product view"
+              style={{
+                maxWidth: '90%',
+                maxHeight: '90%',
+                borderRadius: '16px',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                objectFit: 'contain'
+              }}
+            />
+            <button
+              onClick={() => setIsZoomed(false)}
+              style={{
+                position: 'absolute',
+                top: '2rem',
+                right: '2rem',
+                background: 'rgba(255,255,255,0.1)',
+                border: 'none',
+                color: '#fff',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              <X size={20} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
