@@ -901,6 +901,20 @@ main {
   .nav-search { display: none; }
   .mobile-menu-btn { display: flex; }
 
+  .market-switcher {
+    gap: 4px;
+    padding: 2px;
+    border-radius: 10px;
+  }
+  .market-switch-btn {
+    padding: 0.5rem;
+    min-width: 36px;
+    height: 36px;
+    justify-content: center;
+    border-radius: 8px;
+    gap: 0;
+  }
+
   main { padding: 0 1rem 4rem; }
 
   /* Stats 2x2 */
