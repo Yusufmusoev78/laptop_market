@@ -6,6 +6,7 @@ export interface User {
   username?: string | null;
   phone?: string | null;
   address?: string | null;
+  role: string;
   is_active: boolean;
   is_admin: boolean;
   created_at: string;
@@ -18,6 +19,7 @@ export interface SignupInput {
   phone: string;
   address: string;
   password: string;
+  role?: string;
 }
 
 export interface ProfileUpdateInput {
@@ -25,6 +27,7 @@ export interface ProfileUpdateInput {
   phone?: string;
   address?: string;
   password?: string;
+  role?: string;
 }
 
 export interface UsernameAvailability {

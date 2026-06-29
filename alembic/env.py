@@ -30,6 +30,7 @@ from src.models.sale import Sale
 from src.models.order import Order
 from src.models.phone import Phone
 from src.models.repair import RepairRequest
+from src.models.repair_message import RepairMessage
 target_metadata = Base.metadata
 
 from src.core.config import settings

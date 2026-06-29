@@ -108,6 +108,12 @@ export const Navbar: React.FC = () => {
               {t('adminPanel')}
             </NavLink>
           )}
+          {user?.role === 'usto' && (
+            <NavLink to="/repair-dashboard">
+              <Wrench size={13} style={{ marginRight: '0.3rem', verticalAlign: '-2px' }} />
+              {lang === 'tj' ? 'Кабинети Усто' : lang === 'ru' ? 'Кабинет Мастера' : 'Usto Dashboard'}
+            </NavLink>
+          )}
         </div>
 
         <div className="nav-actions">
@@ -214,6 +220,12 @@ export const Navbar: React.FC = () => {
           </NavLink>
           {user?.is_admin && (
             <NavLink to="/admin" onClick={() => setMobileOpen(false)}>{t('adminPanel')}</NavLink>
+          )}
+          {user?.role === 'usto' && (
+            <NavLink to="/repair-dashboard" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Wrench size={15} style={{ color: 'var(--primary)' }} />
+              <span>{lang === 'tj' ? 'Кабинети Усто' : lang === 'ru' ? 'Кабинет Мастера' : 'Usto Dashboard'}</span>
+            </NavLink>
           )}
 
           <div className="mobile-menu-divider" />

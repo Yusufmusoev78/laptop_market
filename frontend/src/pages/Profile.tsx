@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, BarChart3, Mail, Building2, Laptop, Package, Plus, Phone, ShoppingCart, Smartphone } from 'lucide-react';
+import { LogOut, BarChart3, Mail, Building2, Laptop, Package, Plus, Phone, ShoppingCart, Smartphone, Wrench, Loader, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { useMarket } from '../context/MarketContext';
@@ -13,6 +13,8 @@ import { createPhone, getMyPhones, recordPhoneSale, Phone as PhoneType, PhoneCre
 import { updateProfile, ProfileUpdateInput } from '../api/auth';
 import { getMyBrands, Brand } from '../api/brands';
 import { getMyOrders, Order } from '../api/orders';
+import { RepairChatWindow } from '../components/ui/RepairChatWindow';
+import apiClient from '../api/client';
 import './Profile.css';
 
 const emptyLaptopForm: Omit<LaptopCreateInput, 'brand_id'> = {
@@ -64,6 +66,9 @@ export const Profile: React.FC = () => {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [repairTickets, setRepairTickets] = useState<any[]>([]);
+  const [loadingRepairs, setLoadingRepairs] = useState(true);
+  const [activeChatTicket, setActiveChatTicket] = useState<any | null>(null);
 
   useEffect(() => {
     getMyLaptops().then(setMyLaptops).catch(() => {}).finally(() => setLoadingListings(false));
@@ -76,10 +81,11 @@ export const Profile: React.FC = () => {
       }
     }).catch(() => {}).finally(() => setLoadingBrands(false));
     getMyOrders().then(setOrders).catch(() => {}).finally(() => setLoadingOrders(false));
+    apiClient.get('/repairs/').then(res => setRepairTickets(res.data)).catch(() => {}).finally(() => setLoadingRepairs(false));
   }, []);
 
   useEffect(() => {
-    if (user) setProfileForm({ email: user.email, phone: user.phone ?? '', address: user.address ?? '' });
+    if (user) setProfileForm({ email: user.email, phone: user.phone ?? '', address: user.address ?? '', role: user.role });
   }, [user]);
 
   const handleProfileChange = (field: keyof ProfileUpdateInput) => (
@@ -208,7 +214,16 @@ export const Profile: React.FC = () => {
               <div>
                 <h1 className="profile-title" style={{ fontSize: '1.6rem', margin: 0 }}>{user.username || t('noUsernameSet')}</h1>
                 <p className="profile-hero-email" style={{ margin: '0.2rem 0' }}>{user.email}</p>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.4rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                  {user.role === 'usto' ? (
+                    <span style={{ fontSize: '0.72rem', color: '#10b981', background: 'rgba(16,185,129,0.12)', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                      🛠️ {lang === 'tj' ? 'Усто' : lang === 'ru' ? 'Мастер' : 'Usto'}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '0.72rem', color: '#3b82f6', background: 'rgba(59,130,246,0.12)', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                      🛒 {lang === 'tj' ? 'Харидор' : lang === 'ru' ? 'Покупатель' : 'Buyer'}
+                    </span>
+                  )}
                   {user.is_admin && <span className="admin-badge admin-badge-admin" style={{ margin: 0 }}>{t('adminRole')}</span>}
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                     {t('memberSince')} {new Date(user.created_at).toLocaleDateString()}
@@ -251,6 +266,28 @@ export const Profile: React.FC = () => {
                   <label htmlFor="p-address">{t('addressLabel')}</label>
                   <input id="p-address" value={profileForm.address ?? ''} onChange={handleProfileChange('address')} style={{ borderRadius: 12 }} />
                 </div>
+                <div className="listing-form-field full-width" style={{ gridColumn: '1 / -1' }}>
+                  <label htmlFor="p-role">{lang === 'tj' ? 'Нақши корбар' : lang === 'ru' ? 'Роль пользователя' : 'User Role'}</label>
+                  <select
+                    id="p-role"
+                    value={profileForm.role ?? 'buyer'}
+                    onChange={e => setProfileForm(f => ({ ...f, role: e.target.value }))}
+                    style={{
+                      borderRadius: 12,
+                      padding: '0.65rem',
+                      border: '1px solid var(--border)',
+                      background: 'var(--bg-card)',
+                      color: 'var(--text-primary)',
+                      width: '100%',
+                      fontSize: '0.88rem',
+                      fontWeight: 500,
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="buyer">🛒 {lang === 'tj' ? 'Харидор (Маркет)' : lang === 'ru' ? 'Покупатель (Маркет)' : 'Buyer (Market Client)'}</option>
+                    <option value="usto">🛠️ {lang === 'tj' ? 'Усто (Таъмиркор)' : lang === 'ru' ? 'Мастер (Усто)' : 'Master (Usto Technician)'}</option>
+                  </select>
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                 <Button type="submit" size="sm" isLoading={savingProfile}>
@@ -275,6 +312,12 @@ export const Profile: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{t('addressLabel')}</span>
                   <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{user.address || '—'}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{lang === 'tj' ? 'Нақш' : lang === 'ru' ? 'Роль' : 'Role'}</span>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500, textTransform: 'capitalize' }}>
+                    {user.role === 'usto' ? (lang === 'tj' ? 'Усто (Таъмиркор)' : lang === 'ru' ? 'Мастер' : 'Master') : (lang === 'tj' ? 'Харидор' : lang === 'ru' ? 'Покупатель' : 'Buyer')}
+                  </span>
                 </div>
               </div>
               <Button onClick={() => setIsEditing(true)} size="sm" style={{ alignSelf: 'flex-start', marginTop: '1rem' }}>
@@ -588,6 +631,87 @@ export const Profile: React.FC = () => {
           </div>
         )}
       </motion.div>
+
+      <motion.div className="profile-section" initial="hidden" animate="show" custom={6} variants={sectionVariants}>
+        <h2 className="profile-section-title">
+          <Wrench size={16} style={{ color: 'var(--primary)', marginRight: '8px', verticalAlign: 'middle' }} />
+          {lang === 'tj' ? 'Дархостҳои таъмири ман' : lang === 'ru' ? 'Мои заявки на ремонт' : 'My Repair Requests'}
+        </h2>
+        {loadingRepairs ? (
+          <div className="profile-empty">
+            <Loader className="spin-icon" />
+            <p>{lang === 'en' ? 'Loading repair requests...' : 'Боркунии рӯйхати дархостҳо...'}</p>
+          </div>
+        ) : repairTickets.length === 0 ? (
+          <div className="profile-empty">
+            <Wrench size={26} />
+            <p>{lang === 'en' ? 'No repair requests submitted yet.' : 'Шумо то ҳол дархости таъмир нафиристодаед.'}</p>
+            <Link to="/repair"><Button size="sm" variant="outline" style={{ marginTop: '0.5rem' }}>{lang === 'en' ? 'Request Repair' : 'Фармоиши таъмир'}</Button></Link>
+          </div>
+        ) : (
+          <div className="orders-table-wrapper" style={{ overflowX: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1rem' }}>
+            <table className="orders-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>
+                  <th style={{ padding: '0.75rem' }}>{lang === 'tj' ? 'Чипта' : lang === 'ru' ? 'Тикет' : 'Ticket ID'}</th>
+                  <th style={{ padding: '0.75rem' }}>{lang === 'tj' ? 'Дастгоҳ' : lang === 'ru' ? 'Устройство' : 'Device'}</th>
+                  <th style={{ padding: '0.75rem' }}>{lang === 'tj' ? 'Тавсифи таъмир' : lang === 'ru' ? 'Описание ремонта' : 'Repair Description'}</th>
+                  <th style={{ padding: '0.75rem' }}>{lang === 'tj' ? 'Нархи тахминӣ' : lang === 'ru' ? 'Эст. Стоимость' : 'Est. Cost'}</th>
+                  <th style={{ padding: '0.75rem' }}>{lang === 'tj' ? 'Ҳолат' : lang === 'ru' ? 'Статус' : 'Status'}</th>
+                  <th style={{ padding: '0.75rem' }}>{lang === 'tj' ? 'Чат' : lang === 'ru' ? 'Чат' : 'Actions'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {repairTickets.map(ticket => (
+                  <tr key={ticket.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '0.75rem', fontWeight: 600 }}>#{ticket.id}</td>
+                    <td style={{ padding: '0.75rem', textTransform: 'capitalize' }}>{ticket.device_type}</td>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-secondary)', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {ticket.description}
+                    </td>
+                    <td style={{ padding: '0.75rem', fontWeight: 600 }}>{ticket.estimated_cost} TJS</td>
+                    <td style={{ padding: '0.75rem' }}>
+                      <span className={`admin-badge admin-badge-${ticket.status}`} style={{
+                        padding: '0.2rem 0.5rem',
+                        fontSize: '0.7rem',
+                        borderRadius: '4px',
+                        border: '1px solid',
+                        borderColor: ticket.status === 'completed' ? 'rgba(94, 163, 120, 0.35)' : ticket.status === 'pending' ? 'rgba(245, 158, 11, 0.35)' : 'var(--border-primary)',
+                        color: ticket.status === 'completed' ? 'var(--success)' : ticket.status === 'pending' ? '#f59e0b' : 'var(--primary)'
+                      }}>
+                        {ticket.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.75rem' }}>
+                      <Button
+                        size="sm"
+                        onClick={() => setActiveChatTicket(ticket)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 8px', fontSize: '0.75rem' }}
+                      >
+                        <MessageSquare size={12} /> {lang === 'en' ? 'Chat with Usto' : 'Чат бо усто'}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
+
+      {activeChatTicket && (
+        <RepairChatWindow
+          repairId={activeChatTicket.id}
+          clientName={activeChatTicket.name}
+          clientPhone={activeChatTicket.phone}
+          deviceType={activeChatTicket.device_type}
+          estimatedCost={activeChatTicket.estimated_cost}
+          onClose={() => {
+            setActiveChatTicket(null);
+            apiClient.get('/repairs/').then(res => setRepairTickets(res.data));
+          }}
+        />
+      )}
     </div>
   );
 };

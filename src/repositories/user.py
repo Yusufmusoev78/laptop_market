@@ -25,7 +25,8 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
             address=obj_in.address,
             hashed_password=get_password_hash(obj_in.password),
             is_active=obj_in.is_active,
-            is_admin=obj_in.is_admin
+            is_admin=obj_in.is_admin,
+            role=obj_in.role
         )
         db.add(db_obj)
         await db.commit()

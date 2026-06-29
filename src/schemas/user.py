@@ -12,12 +12,14 @@ class UserCreate(UserBase):
     phone: str = Field(..., min_length=5, max_length=30)
     address: str = Field(..., min_length=3, max_length=255)
     password: str
+    role: str = "buyer"
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     address: Optional[str] = None
     password: Optional[str] = None
+    role: Optional[str] = None
     is_active: Optional[bool] = None
 
 class AdminUserUpdate(BaseModel):
@@ -29,6 +31,7 @@ class UserRead(UserBase):
     username: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
+    role: str
     created_at: datetime
     updated_at: datetime
 

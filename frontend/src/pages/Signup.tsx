@@ -8,7 +8,7 @@ import './Auth.css';
 
 export const Signup: React.FC = () => {
   const { signup } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -17,6 +17,7 @@ export const Signup: React.FC = () => {
   const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('buyer');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -55,7 +56,7 @@ export const Signup: React.FC = () => {
 
     setLoading(true);
     try {
-      await signup({ email, username, phone, address, password });
+      await signup({ email, username, phone, address, password, role });
       navigate('/profile', { replace: true });
     } catch {
       setError(t('signupFailed'));
@@ -72,6 +73,50 @@ export const Signup: React.FC = () => {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {error && <div className="auth-error">{error}</div>}
+
+          <div className="auth-field" style={{ marginBottom: '1.25rem' }}>
+            <label style={{ fontWeight: 600 }}>{lang === 'tj' ? 'Нақши шумо' : lang === 'ru' ? 'Ваша роль' : 'Your Role'}</label>
+            <div className="auth-role-tabs" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.4rem' }}>
+              <button
+                type="button"
+                className={`auth-role-tab ${role === 'buyer' ? 'active' : ''}`}
+                onClick={() => setRole('buyer')}
+                style={{
+                  padding: '0.75rem',
+                  borderRadius: '10px',
+                  border: role === 'buyer' ? '2.5px solid var(--primary)' : '1px solid var(--border)',
+                  background: role === 'buyer' ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
+                  color: role === 'buyer' ? 'var(--primary)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                🛒 {lang === 'tj' ? 'Харидор (Маркет)' : lang === 'ru' ? 'Покупатель (Маркет)' : 'Buyer (Market)'}
+              </button>
+              <button
+                type="button"
+                className={`auth-role-tab ${role === 'usto' ? 'active' : ''}`}
+                onClick={() => setRole('usto')}
+                style={{
+                  padding: '0.75rem',
+                  borderRadius: '10px',
+                  border: role === 'usto' ? '2.5px solid var(--primary)' : '1px solid var(--border)',
+                  background: role === 'usto' ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
+                  color: role === 'usto' ? 'var(--primary)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                🛠️ {lang === 'tj' ? 'Усто (Таъмиркор)' : lang === 'ru' ? 'Мастер (Усто)' : 'Master (Usto)'}
+              </button>
+            </div>
+          </div>
 
           <div className="auth-field">
             <label htmlFor="signup-email">{t('emailLabel')}</label>
