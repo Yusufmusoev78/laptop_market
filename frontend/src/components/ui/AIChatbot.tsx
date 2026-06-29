@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Sparkles, Loader, Trash2, Menu, Brain, BookOpen } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, Loader, Trash2, Menu, Brain, BookOpen, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getLaptops, Laptop } from '../../api/laptops';
 import { getLaptopGallery } from '../../utils/laptopImages';
@@ -12,6 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 interface Message {
   sender: 'user' | 'ai';
   text: string;
+  image?: string;
   laptops?: Laptop[];
   phones?: Phone[];
 }
@@ -25,6 +26,8 @@ export const AIChatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [laptops, setLaptops] = useState<Laptop[]>([]);
   const [phones, setPhones] = useState<Phone[]>([]);
 
@@ -58,15 +61,15 @@ export const AIChatbot: React.FC = () => {
       if (lang === 'tj') {
         welcome = name 
           ? `Салом, ${name}! Ман ёвари АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо кумак кунам?` 
-          : 'Салом! Ман ёвар-АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо дар интихоби лаптопи мувофиқ ё телефони дилхоҳ кумак кунам?';
+          : 'Салом! Ман ёвар-АИ Somon Comp мебошам. Чӣ тавр метавонам ба шумо дар интихоби лаптопи мувофиқ ё телефони дилхоҳ кумак кунам? Шумо инчунин метавонед сурати дастгоҳро бор кунед, то онро муайян кунам!';
       } else if (lang === 'ru') {
         welcome = name 
           ? `Привет, ${name}! Я ИИ-ассистент Somon Comp. Как я могу помочь вам сегодня?` 
-          : 'Привет! Я ИИ-ассистент Somon Comp. Как я могу помочь вам выбрать подходящий ноутбук или телефон?';
+          : 'Привет! Я ИИ-ассистент Somon Comp. Как я могу помочь вам выбрать подходящий ноутбук или телефон? Вы также можете прикрепить фото устройства для ИИ-анализа!';
       } else {
         welcome = name 
           ? `Hello, ${name}! I am Somon Comp AI. How can I help you today?` 
-          : 'Hello! I am Somon Comp AI. How can I help you find the perfect laptop or smartphone today?';
+          : 'Hello! I am Somon Comp AI. How can I help you find the perfect laptop or smartphone today? You can also upload a device photo for visual hardware analysis!';
       }
       setMessages([{ sender: 'ai', text: welcome }]);
     }
@@ -285,6 +288,61 @@ export const AIChatbot: React.FC = () => {
     }, 800);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      
+      // 1. Add user photo message
+      setMessages(prev => [...prev, { sender: 'user', text: '', image: dataUrl }]);
+      setIsTyping(true);
+
+      // 2. Perform mock visual analysis
+      setTimeout(() => {
+        const name = file.name.toLowerCase();
+        let matchedBrand = 'Apple';
+        let isPhone = true;
+
+        if (name.includes('laptop') || name.includes('macbook') || name.includes('lenovo') || name.includes('asus') || name.includes('dell')) {
+          isPhone = false;
+        }
+
+        if (isPhone) {
+          if (name.includes('samsung') || name.includes('galaxy')) matchedBrand = 'Samsung';
+          else if (name.includes('xiaomi') || name.includes('redmi')) matchedBrand = 'Xiaomi';
+          else matchedBrand = 'Apple';
+
+          const matched = phones.filter(p => p.brand.toLowerCase() === matchedBrand.toLowerCase()).slice(0, 3);
+          let responseText = '';
+          if (lang === 'tj') responseText = `Ман суратро таҳлил кардам ва бренди **${matchedBrand}**-ро муайян намудам. Смартфонҳои мувофиқи зерин дар анбори мо ҳастанд:`;
+          else if (lang === 'ru') responseText = `Я проанализировал изображение и распознал бренд **${matchedBrand}**. Вот подходящие смартфоны в наличии:`;
+          else responseText = `I analyzed the image and recognized a **${matchedBrand}** device. Here are matching smartphones in stock:`;
+
+          setMessages(prev => [...prev, { sender: 'ai', text: responseText, phones: matched }]);
+        } else {
+          if (name.includes('lenovo')) matchedBrand = 'Lenovo';
+          else if (name.includes('asus')) matchedBrand = 'ASUS';
+          else if (name.includes('hp')) matchedBrand = 'HP';
+          else if (name.includes('dell')) matchedBrand = 'Dell';
+          else matchedBrand = 'Apple';
+
+          const matched = laptops.filter(l => l.brand.toLowerCase() === matchedBrand.toLowerCase()).slice(0, 3);
+          let responseText = '';
+          if (lang === 'tj') responseText = `Ман суратро таҳлил кардам ва дастгоҳи **${matchedBrand}**-ро муайян намудам. Лаптопҳои мувофиқи зерин дар анбори мо ҳастанд:`;
+          else if (lang === 'ru') responseText = `Я проанализировал изображение и распознал устройство **${matchedBrand}**. Вот подходящие ноутбуки в наличии:`;
+          else responseText = `I analyzed the image and recognized a **${matchedBrand}** computer. Here are matching laptops in stock:`;
+
+          setMessages(prev => [...prev, { sender: 'ai', text: responseText, laptops: matched }]);
+        }
+        setIsTyping(false);
+      }, 2200);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const formatText = (text: string) => {
     return text.split('\n').map((line, i) => {
       let content = line;
@@ -323,6 +381,15 @@ export const AIChatbot: React.FC = () => {
       >
         {isOpen ? <X size={22} /> : <MessageSquare size={22} />}
       </motion.button>
+
+      {/* Hidden File Input for chat attachments */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageUpload}
+        accept="image/*"
+        style={{ display: 'none' }}
+      />
 
       {/* Chat drawer */}
       <AnimatePresence>
@@ -495,19 +562,32 @@ export const AIChatbot: React.FC = () => {
                             gap: '0.5rem'
                           }}
                         >
-                          <div
-                            style={{
-                              padding: '0.6rem 0.9rem',
-                              borderRadius: m.sender === 'user' ? '16px 16px 2px 16px' : '16px 16px 16px 2px',
-                              background: m.sender === 'user' ? 'var(--primary-light)' : 'var(--bg-surface)',
-                              border: `1px solid ${m.sender === 'user' ? 'var(--border-primary)' : 'var(--border)'}`,
-                              color: 'var(--text-primary)',
-                              fontSize: '0.82rem',
-                              lineHeight: 1.45
-                            }}
-                          >
-                            {formatText(m.text)}
-                          </div>
+                          {/* Image Attachment Rendering */}
+                          {m.image && (
+                            <div style={{
+                              maxWidth: '100%', borderRadius: 14, overflow: 'hidden',
+                              border: '1px solid var(--border-strong)', alignSelf: 'flex-end',
+                              boxShadow: 'var(--shadow-glow)', maxHeight: 150
+                            }}>
+                              <img src={m.image} alt="Upload preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                          )}
+
+                          {m.text && (
+                            <div
+                              style={{
+                                padding: '0.6rem 0.9rem',
+                                borderRadius: m.sender === 'user' ? '16px 16px 2px 16px' : '16px 16px 16px 2px',
+                                background: m.sender === 'user' ? 'var(--primary-light)' : 'var(--bg-surface)',
+                                border: `1px solid ${m.sender === 'user' ? 'var(--border-primary)' : 'var(--border)'}`,
+                                color: 'var(--text-primary)',
+                                fontSize: '0.82rem',
+                                lineHeight: 1.45
+                              }}
+                            >
+                              {formatText(m.text)}
+                            </div>
+                          )}
 
                           {/* Render matched laptops as clickable visual cards in chat */}
                           {m.laptops && m.laptops.length > 0 && (
@@ -654,7 +734,24 @@ export const AIChatbot: React.FC = () => {
                     </div>
 
                     {/* Input area */}
-                    <div style={{ padding: '0.85rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ padding: '0.85rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      
+                      {/* Image Upload Attachment Trigger */}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{
+                          background: 'none', border: 'none',
+                          color: 'var(--text-secondary)', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          padding: '0.4rem', borderRadius: 8, transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--primary)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                        title="Upload image / Боргузории акс"
+                      >
+                        <Camera size={18} />
+                      </button>
+
                       <input
                         type="text"
                         placeholder="Ask me anything..."

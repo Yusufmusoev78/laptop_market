@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, Camera, Loader, Sparkles, Check, X } from 'lucide-react';
+import { SlidersHorizontal, Camera, Loader, Sparkles, Check, X, Upload, Video } from 'lucide-react';
 import { getLaptops, Laptop } from '../api/laptops';
 import { getPhones, Phone } from '../api/phones';
 import { LaptopCard } from '../components/ui/LaptopCard';
@@ -54,6 +54,13 @@ export const Catalog: React.FC = () => {
 
   // AI Visual Search States
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const activeStream = useRef<MediaStream | null>(null);
+
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  
   const [scanningImage, setScanningImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
@@ -62,10 +69,8 @@ export const Catalog: React.FC = () => {
   const prices = marketMode === 'laptop' ? LAPTOP_PRICES : PHONE_PRICES;
   const ramOpts = marketMode === 'laptop' ? LAPTOP_RAM : PHONE_RAM;
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // Handles raw image parsing
+  const processImageFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       setScanningImage(event.target?.result as string);
@@ -92,7 +97,6 @@ export const Catalog: React.FC = () => {
             matchedBrand = brandsInStock[Math.floor(Math.random() * brandsInStock.length)];
           }
         } else {
-          // Phone mode
           if (name.includes('iphone') || name.includes('apple') || name.includes('ios')) {
             matchedBrand = 'Apple';
           } else if (name.includes('galaxy') || name.includes('samsung') || name.includes('ultra')) {
@@ -107,9 +111,81 @@ export const Catalog: React.FC = () => {
 
         setScanResult(matchedBrand);
         setIsScanning(false);
-      }, 2500);
+      }, 2000);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processImageFile(file);
+    setIsSelectorOpen(false);
+  };
+
+  // Starts the webcam stream
+  const startCamera = async () => {
+    setCameraError(null);
+    setIsCameraActive(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      activeStream.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error(err);
+      setCameraError(lang === 'tj' ? 'Дастрасӣ ба камера рад карда шуд ё камера ёфт нашуд.' : lang === 'ru' ? 'Доступ к камере отклонен или камера не найдена.' : 'Camera access denied or webcam not found.');
+      setIsCameraActive(false);
+    }
+  };
+
+  // Stops webcam stream
+  const stopCamera = () => {
+    if (activeStream.current) {
+      activeStream.current.getTracks().forEach(track => track.stop());
+      activeStream.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  // Captures photo from live stream
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg');
+      
+      stopCamera();
+      setIsSelectorOpen(false);
+      
+      setScanningImage(dataUrl);
+      setIsScanning(true);
+      setScanResult(null);
+
+      // Simulate AI visual recognition on camera snap
+      setTimeout(() => {
+        let matchedBrand = 'Apple';
+        if (marketMode === 'laptop') {
+          const brandsInStock = ['ASUS', 'Lenovo', 'HP', 'Apple', 'MSI'];
+          matchedBrand = brandsInStock[Math.floor(Math.random() * brandsInStock.length)];
+        } else {
+          const phoneBrandsInStock = ['Apple', 'Samsung', 'Xiaomi'];
+          matchedBrand = phoneBrandsInStock[Math.floor(Math.random() * phoneBrandsInStock.length)];
+        }
+        setScanResult(matchedBrand);
+        setIsScanning(false);
+      }, 2000);
+    }
   };
 
   const applyScanResult = () => {
@@ -209,6 +285,15 @@ export const Catalog: React.FC = () => {
   const hasFilter = brand !== 'All' || priceIdx !== 0 || ram !== 'All' || !!search;
   const resetFilters = () => { setBrand('All'); setPriceIdx(0); setRam('All'); setSearch(''); };
 
+  // Ensure stream stops on unmount
+  useEffect(() => {
+    return () => {
+      if (activeStream.current) {
+        activeStream.current.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
+
   if (loading) return (
     <div style={{ display:'flex', justifyContent:'center', alignItems:'center', height:'50vh' }}>
       <div style={{ width:42, height:42, borderRadius:'50%', border:'3px solid var(--border)', borderTopColor:'var(--primary)', animation:'spin 0.8s linear infinite' }} />
@@ -241,7 +326,7 @@ export const Catalog: React.FC = () => {
               style={{ paddingRight: '2.8rem' }}
             />
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setIsSelectorOpen(true)}
               className="search-camera-btn"
               title="Search by image / Ҷустуҷӯ бо сурат"
               style={{
@@ -373,7 +458,122 @@ export const Catalog: React.FC = () => {
         </div>
       </div>
 
-      {/* Visual AI Search Modal */}
+      {/* Visual Search Selector Modal */}
+      <AnimatePresence>
+        {isSelectorOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 1000,
+              background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              style={{
+                width: 'min(480px, 100%)', background: 'var(--bg-card)',
+                border: '1px solid var(--border-strong)', borderRadius: 24,
+                padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem',
+                position: 'relative', boxShadow: 'var(--shadow-glow)'
+              }}
+            >
+              <button
+                onClick={() => { setIsSelectorOpen(false); stopCamera(); }}
+                style={{
+                  position: 'absolute', top: '1.25rem', right: '1.25rem',
+                  background: 'none', border: 'none', color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{ textAlign: 'center' }}>
+                <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontFamily: 'Sora, sans-serif' }}>
+                  <Sparkles size={18} style={{ color: 'var(--primary)' }} />
+                  {lang === 'en' && 'AI Visual Search'}
+                  {lang === 'ru' && 'ИИ Визуальный поиск'}
+                  {lang === 'tj' && 'Ҷустуҷӯи визуалӣ бо АИ'}
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                  {lang === 'en' && 'Upload a photo or capture a live image with your camera to find matching hardware.'}
+                  {lang === 'ru' && 'Загрузите фото или сделайте снимок на камеру, чтобы найти подходящее устройство.'}
+                  {lang === 'tj' && 'Суратро бор кунед ё бо камера акс гиред, то маҳсулоти мувофиқро пайдо созед.'}
+                </p>
+              </div>
+
+              {isCameraActive ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+                  <div style={{ position: 'relative', width: '100%', height: 280, borderRadius: 16, border: '1px solid var(--border-strong)', overflow: 'hidden', background: '#000' }}>
+                    <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ position: 'absolute', inset: '1rem', border: '1px dashed rgba(255,255,255,0.4)', borderRadius: 12, pointerEvents: 'none' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                    <Button onClick={capturePhoto} style={{ flex: 1 }}>
+                      <Camera size={16} style={{ marginRight: '6px' }} />
+                      {lang === 'en' && 'Snap Photo'}
+                      {lang === 'ru' && 'Сделать снимок'}
+                      {lang === 'tj' && 'Аксбардорӣ'}
+                    </Button>
+                    <Button variant="outline" onClick={stopCamera}>
+                      {lang === 'en' && 'Back'}
+                      {lang === 'ru' && 'Назад'}
+                      {lang === 'tj' && 'Бозгашт'}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {cameraError && <div className="listing-error" style={{ margin: 0, fontSize: '0.8rem' }}>{cameraError}</div>}
+                  
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{
+                        flex: 1, height: 120, border: '1px dashed var(--border-strong)',
+                        borderRadius: 16, background: 'var(--bg-surface)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', transition: 'border-color 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-strong)'}
+                    >
+                      <Upload size={24} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {lang === 'en' && 'Upload Photo'}
+                        {lang === 'ru' && 'Загрузить файл'}
+                        {lang === 'tj' && 'Боргузории файл'}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={startCamera}
+                      style={{
+                        flex: 1, height: 120, border: '1px dashed var(--border-strong)',
+                        borderRadius: 16, background: 'var(--bg-surface)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', transition: 'border-color 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-strong)'}
+                    >
+                      <Video size={24} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {lang === 'en' && 'Use Camera'}
+                        {lang === 'ru' && 'Использовать камеру'}
+                        {lang === 'tj' && 'Истифодаи камера'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Visual AI Scan Analyzing Modal */}
       <AnimatePresence>
         {scanningImage && (
           <motion.div
