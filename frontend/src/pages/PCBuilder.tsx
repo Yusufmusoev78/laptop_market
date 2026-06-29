@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cpu, Wrench, AlertTriangle, CheckCircle2, Zap, Layers, HardDrive, HelpCircle, Trash2, ShoppingBag, X, Check } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
@@ -98,6 +98,15 @@ export const PCBuilder: React.FC = () => {
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderRef, setOrderRef] = useState('');
 
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (tabsRef.current) {
+      const scrollAmount = direction === 'left' ? -150 : 150;
+      tabsRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   const selectComponent = (category: ComponentCategory, item: BuildComponent) => {
     setBuild(prev => ({ ...prev, [category]: item }));
     toast.success(`${item.name} added to build`);
@@ -185,23 +194,31 @@ export const PCBuilder: React.FC = () => {
         {/* Left column: Slots & Selectors */}
         <div className="builder-slots-section">
           {/* Categories Tab Header */}
-          <div className="category-tabs">
-            {(Object.keys(COMPONENTS) as ComponentCategory[]).map(cat => {
-              const Icon = CATEGORIES_META[cat].icon;
-              const isSelected = activeCategory === cat;
-              const hasSelected = !!build[cat];
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`category-tab-btn ${isSelected ? 'active' : ''} ${hasSelected ? 'has-val' : ''}`}
-                >
-                  <Icon size={16} />
-                  <span>{CATEGORIES_META[cat].label[lang]}</span>
-                  {hasSelected && <span className="check-dot">✓</span>}
-                </button>
-              );
-            })}
+          <div className="category-tabs-wrapper">
+            <button type="button" className="scroll-arrow-btn left" onClick={() => scrollTabs('left')} aria-label="Scroll left">
+              &lt;
+            </button>
+            <div className="category-tabs" ref={tabsRef}>
+              {(Object.keys(COMPONENTS) as ComponentCategory[]).map(cat => {
+                const Icon = CATEGORIES_META[cat].icon;
+                const isSelected = activeCategory === cat;
+                const hasSelected = !!build[cat];
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`category-tab-btn ${isSelected ? 'active' : ''} ${hasSelected ? 'has-val' : ''}`}
+                  >
+                    <Icon size={16} />
+                    <span>{CATEGORIES_META[cat].label[lang]}</span>
+                    {hasSelected && <span className="check-dot">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <button type="button" className="scroll-arrow-btn right" onClick={() => scrollTabs('right')} aria-label="Scroll right">
+              &gt;
+            </button>
           </div>
 
           {/* List of active category components to choose from */}
