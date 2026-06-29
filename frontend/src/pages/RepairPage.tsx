@@ -58,7 +58,7 @@ export const RepairPage: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isAiTyping, setIsAiTyping] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatBodyRef = useRef<HTMLDivElement>(null);
 
   // Set default welcome message for AI Diagnostician
   useEffect(() => {
@@ -74,7 +74,9 @@ export const RepairPage: React.FC = () => {
   }, [lang]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatBodyRef.current) {
+      chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+    }
   }, [chatMessages, isAiTyping]);
 
   const activeServicesList = deviceType === 'laptop' ? LAPTOP_SERVICES : PHONE_SERVICES;
@@ -425,7 +427,7 @@ export const RepairPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="ai-chat-body">
+            <div className="ai-chat-body" ref={chatBodyRef}>
               {chatMessages.map((msg, idx) => (
                 <div key={idx} className={`ai-chat-msg ${msg.sender}`}>
                   <div className="msg-bubble">
@@ -452,7 +454,7 @@ export const RepairPage: React.FC = () => {
                   </div>
                 </div>
               )}
-              <div ref={chatEndRef} />
+              {/* Scroll anchor removed to prevent window jumping */}
             </div>
 
             <div className="ai-chat-input-wrapper">
