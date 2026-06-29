@@ -1,51 +1,51 @@
 import apiClient from './client';
 
 export interface Phone {
-  id: number;
-  owner_id?: number | null;
-  brand: string;
-  brand_id?: number | null;
-  model_name: string;
-  cpu: string;
-  ram_gb: number;
-  storage_gb: number;
-  screen_size_inches: number;
-  battery_capacity_mah: number;
-  color: string;
-  price_tjs: number;
-  stock_quantity: number;
-  warranty_months: number;
-  description?: string;
+  id: number; // 🆔 Unique identifier
+  owner_id?: number | null; // 👤 Owner's user ID
+  brand: string; // 🏷️ Brand name
+  brand_id?: number | null; // 🏢 Brand identifier
+  model_name: string; // 📝 Model name
+  cpu: string; // ⚙️ Processor type
+  ram_gb: number; // 🧠 RAM in GB
+  storage_gb: number; // 💾 Storage in GB
+  screen_size_inches: number; // 📱 Screen size in inches
+  battery_capacity_mah: number; // 🔋 Battery capacity in mAh
+  color: string; // 🎨 Color
+  price_tjs: number; // 💰 Price in TJS
+  stock_quantity: number; // 📦 Available stock
+  warranty_months: number; // 🛡️ Warranty duration
+  description?: string; // 📄 Product description
 }
 
 export interface PhoneCreateInput {
-  brand_id: number;
-  model_name: string;
-  cpu: string;
-  ram_gb: number;
-  storage_gb: number;
-  screen_size_inches: number;
-  battery_capacity_mah: number;
-  color: string;
-  price_tjs: number;
-  stock_quantity: number;
-  warranty_months: number;
-  description?: string;
+  brand_id: number; // 🏢 Brand identifier
+  model_name: string; // 📝 Model name
+  cpu: string; // ⚙️ Processor type
+  ram_gb: number; // 🧠 RAM in GB
+  storage_gb: number; // 💾 Storage in GB
+  screen_size_inches: number; // 📱 Screen size in inches
+  battery_capacity_mah: number; // 🔋 Battery capacity in mAh
+  color: string; // 🎨 Color
+  price_tjs: number; // 💰 Price in TJS
+  stock_quantity: number; // 📦 Available stock
+  warranty_months: number; // 🛡️ Warranty duration
+  description?: string; // 📄 Product description
 }
 
 export interface PhoneUpdateInput {
-  brand?: string;
-  model_name?: string;
-  cpu?: string;
-  ram_gb?: number;
-  storage_gb?: number;
-  screen_size_inches?: number;
-  battery_capacity_mah?: number;
-  color?: string;
-  price_tjs?: number;
-  stock_quantity?: number;
-  warranty_months?: number;
-  description?: string;
+  brand?: string; // 🏷️ Brand name
+  model_name?: string; // 📝 Model name
+  cpu?: string; // ⚙️ Processor type
+  ram_gb?: number; // 🧠 RAM in GB
+  storage_gb?: number; // 💾 Storage in GB
+  screen_size_inches?: number; // 📱 Screen size in inches
+  battery_capacity_mah?: number; // 🔋 Battery capacity in mAh
+  color?: string; // 🎨 Color
+  price_tjs?: number; // 💰 Price in TJS
+  stock_quantity?: number; // 📦 Available stock
+  warranty_months?: number; // 🛡️ Warranty duration
+  description?: string; // 📄 Product description
 }
 
 export const getPhones = async (): Promise<Phone[]> => {
@@ -82,3 +82,4 @@ export const recordPhoneSale = async (phoneId: number, quantity: number): Promis
   const response = await apiClient.post(`/phones/${phoneId}/sales`, { quantity });
   return response.data;
 };
+

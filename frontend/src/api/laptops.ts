@@ -1,48 +1,48 @@
 import apiClient from './client';
 
 export interface Laptop {
-  id: number;
-  owner_id?: number | null;
-  brand: string;
-  brand_id?: number | null;
-  model_name: string;
-  cpu: string;
-  ram_gb: number;
-  storage_gb: number;
-  gpu?: string;
-  price_tjs: number;
-  stock_quantity: number;
-  keyboard_layout: string;
-  warranty_months: number;
-  description?: string;
+  id: number; // 🆔 Unique identifier
+  owner_id?: number | null; // 👤 Owner's user ID
+  brand: string; // 🏷️ Brand name
+  brand_id?: number | null; // 🏢 Brand identifier
+  model_name: string; // 📝 Model name
+  cpu: string; // ⚙️ Processor type
+  ram_gb: number; // 🧠 RAM in GB
+  storage_gb: number; // 💾 Storage in GB
+  gpu?: string; // 🎮 Graphics processor
+  price_tjs: number; // 💰 Price in TJS
+  stock_quantity: number; // 📦 Available stock
+  keyboard_layout: string; // ⌨️ Keyboard layout
+  warranty_months: number; // 🛡️ Warranty duration
+  description?: string; // 📄 Product description
 }
 
 export interface LaptopCreateInput {
-  brand_id: number;
-  model_name: string;
-  cpu: string;
-  ram_gb: number;
-  storage_gb: number;
-  gpu?: string;
-  price_tjs: number;
-  stock_quantity: number;
-  keyboard_layout: string;
-  warranty_months: number;
-  description?: string;
+  brand_id: number; // 🏢 Brand identifier
+  model_name: string; // 📝 Model name
+  cpu: string; // ⚙️ Processor type
+  ram_gb: number; // 🧠 RAM in GB
+  storage_gb: number; // 💾 Storage in GB
+  gpu?: string; // 🎮 Graphics processor
+  price_tjs: number; // 💰 Price in TJS
+  stock_quantity: number; // 📦 Available stock
+  keyboard_layout: string; // ⌨️ Keyboard layout
+  warranty_months: number; // 🛡️ Warranty duration
+  description?: string; // 📄 Product description
 }
 
 export interface LaptopUpdateInput {
-  brand?: string;
-  model_name?: string;
-  cpu?: string;
-  ram_gb?: number;
-  storage_gb?: number;
-  gpu?: string;
-  price_tjs?: number;
-  stock_quantity?: number;
-  keyboard_layout?: string;
-  warranty_months?: number;
-  description?: string;
+  brand?: string; // 🏷️ Brand name
+  model_name?: string; // 📝 Model name
+  cpu?: string; // ⚙️ Processor type
+  ram_gb?: number; // 🧠 RAM in GB
+  storage_gb?: number; // 💾 Storage in GB
+  gpu?: string; // 🎮 Graphics processor
+  price_tjs?: number; // 💰 Price in TJS
+  stock_quantity?: number; // 📦 Available stock
+  keyboard_layout?: string; // ⌨️ Keyboard layout
+  warranty_months?: number; // 🛡️ Warranty duration
+  description?: string; // 📄 Product description
 }
 
 export const getLaptops = async (): Promise<Laptop[]> => {
@@ -79,3 +79,4 @@ export const recordSale = async (laptopId: number, quantity: number): Promise<La
   const response = await apiClient.post(`/laptops/${laptopId}/sales`, { quantity });
   return response.data;
 };
+
