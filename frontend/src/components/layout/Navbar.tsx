@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Gem, Search, Bell, Sun, Moon, User, X, Menu, Globe, Shield, Sparkles, Laptop, Smartphone, Wrench } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLang, Lang } from '../../context/LanguageContext';
@@ -16,6 +16,7 @@ export const Navbar: React.FC = () => {
   const { notifications, unreadCount, markAllRead } = useNotifications();
   const { marketMode, setMarketMode } = useMarket();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchVal, setSearchVal] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -60,16 +61,22 @@ export const Navbar: React.FC = () => {
       {/* Market Switcher */}
       <div className="market-switcher">
         <button
-          className={`market-switch-btn btn-laptop ${marketMode === 'laptop' ? 'active' : ''}`}
+          className={`market-switch-btn btn-laptop ${marketMode === 'laptop' && location.pathname !== '/pc-builder' ? 'active' : ''}`}
           onClick={() => { setMarketMode('laptop'); navigate('/catalog'); }}
         >
           <Laptop size={14} /> <span className="desktop-only">{t('laptops')}</span>
         </button>
         <button
-          className={`market-switch-btn btn-phone ${marketMode === 'phone' ? 'active' : ''}`}
+          className={`market-switch-btn btn-phone ${marketMode === 'phone' && location.pathname !== '/pc-builder' ? 'active' : ''}`}
           onClick={() => { setMarketMode('phone'); navigate('/catalog'); }}
         >
           <Smartphone size={14} /> <span className="desktop-only">{t('phones')}</span>
+        </button>
+        <button
+          className={`market-switch-btn btn-pc-builder ${location.pathname === '/pc-builder' ? 'active' : ''}`}
+          onClick={() => navigate('/pc-builder')}
+        >
+          <Wrench size={14} /> <span className="desktop-only">{lang === 'tj' ? 'Сборка ПК' : lang === 'ru' ? 'Сборка ПК' : 'PC Builder'}</span>
         </button>
       </div>
 
@@ -96,10 +103,6 @@ export const Navbar: React.FC = () => {
         <div className="nav-pill-group desktop-only">
           <NavLink to="/" end>{t('home')}</NavLink>
           <NavLink to="/catalog">{t('catalog')}</NavLink>
-          <NavLink to="/pc-builder" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-            <Wrench size={13} style={{ color: 'var(--primary)' }} />
-            <span>{lang === 'tj' ? 'Сборка ПК' : lang === 'ru' ? 'Сборка ПК' : 'PC Builder'}</span>
-          </NavLink>
           {user?.is_admin && (
             <NavLink to="/admin">
               <Shield size={13} style={{ marginRight: '0.3rem', verticalAlign: '-2px' }} />
