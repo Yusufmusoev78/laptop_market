@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Wrench, Laptop, Smartphone, Check, Send, Sparkles, Loader, Clock, ShieldCheck } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import apiClient from '../api/client';
 import './RepairPage.css';
 
 interface RepairServiceItem {
@@ -125,7 +125,7 @@ export const RepairPage: React.FC = () => {
     const fullDescription = `[Device: ${deviceType.toUpperCase()}] Selected Services: ${serviceLabels}. User Note: ${description}`;
 
     try {
-      await axios.post('/api/repairs/', {
+      await apiClient.post('/repairs/', {
         name,
         phone,
         device_type: deviceType,
