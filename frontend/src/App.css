@@ -644,20 +644,189 @@ main {
 
 /* ── Footer ──────────────────────────────────────────────── */
 .main-footer {
-  display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
-  padding: 2rem; text-align: center;
-  border-top: 1px solid var(--border);
-  background: rgba(12,10,26,0.5);
+  border-top: 1px solid var(--border-strong);
+  background: rgba(10, 8, 22, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 4rem 1.5rem 2rem;
+  margin: 4rem -1.5rem 0 -1.5rem;
+  color: var(--text-primary);
 }
-[data-theme="light"] .main-footer { background: rgba(238,238,255,0.6); }
+
+[data-theme="light"] .main-footer {
+  background: rgba(245, 245, 250, 0.85);
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1.2fr);
+  gap: 3rem;
+  margin-bottom: 3.5rem;
+}
+
+@media (max-width: 900px) {
+  .footer-container {
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.brand-col {
+  padding-right: 1rem;
+}
 
 .footer-brand {
-  display: flex; align-items: center; gap: 0.45rem;
-  font-family: 'Sora', sans-serif; font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
   background: var(--gradient-brand);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.main-footer > p { color: var(--text-muted); font-size: 0.78rem; }
+
+.footer-desc-text {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.footer-socials {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.social-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.social-icon-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.15);
+}
+
+.footer-heading {
+  font-family: 'Sora', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+.footer-links-list, .footer-contact-details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+}
+
+.footer-links-list a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease, padding 0.15s ease;
+}
+
+.footer-links-list a:hover, .footer-links-list a.active {
+  color: var(--primary);
+  padding-left: 2px;
+}
+
+.footer-contact-details li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.footer-contact-details a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.footer-contact-details a:hover {
+  color: var(--primary);
+}
+
+.footer-financing-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  background: var(--bg-surface);
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 1.75rem;
+}
+
+.footer-bottom-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-bottom-inner p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.footer-payment-badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.payment-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
 
 /* ── Mobile breakpoints ──────────────────────────────────── */
 @media (max-width: 900px) {
