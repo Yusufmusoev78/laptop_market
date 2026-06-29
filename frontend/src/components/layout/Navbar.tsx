@@ -58,25 +58,24 @@ export const Navbar: React.FC = () => {
         </NavLink>
       </div>
 
-      {/* Market Switcher */}
       <div className="market-switcher">
         <button
-          className={`market-switch-btn btn-laptop ${marketMode === 'laptop' && location.pathname !== '/pc-builder' ? 'active' : ''}`}
+          className={`market-switch-btn btn-laptop ${marketMode === 'laptop' && location.pathname !== '/repair' ? 'active' : ''}`}
           onClick={() => { setMarketMode('laptop'); navigate('/catalog'); }}
         >
           <Laptop size={14} /> <span className="desktop-only">{t('laptops')}</span>
         </button>
         <button
-          className={`market-switch-btn btn-phone ${marketMode === 'phone' && location.pathname !== '/pc-builder' ? 'active' : ''}`}
+          className={`market-switch-btn btn-phone ${marketMode === 'phone' && location.pathname !== '/repair' ? 'active' : ''}`}
           onClick={() => { setMarketMode('phone'); navigate('/catalog'); }}
         >
           <Smartphone size={14} /> <span className="desktop-only">{t('phones')}</span>
         </button>
         <button
-          className={`market-switch-btn btn-pc-builder ${location.pathname === '/pc-builder' ? 'active' : ''}`}
-          onClick={() => navigate('/pc-builder')}
+          className={`market-switch-btn btn-pc-builder ${location.pathname === '/repair' ? 'active' : ''}`}
+          onClick={() => navigate('/repair')}
         >
-          <Wrench size={14} /> <span className="desktop-only">{lang === 'tj' ? 'Сборка ПК' : lang === 'ru' ? 'Сборка ПК' : 'PC Builder'}</span>
+          <Wrench size={14} /> <span className="desktop-only">{lang === 'tj' ? 'Таъмир' : lang === 'ru' ? 'Ремонт' : 'Repair'}</span>
         </button>
       </div>
 
@@ -209,9 +208,9 @@ export const Navbar: React.FC = () => {
 
           <NavLink to="/" end onClick={() => setMobileOpen(false)}>{t('home')}</NavLink>
           <NavLink to="/catalog" onClick={() => setMobileOpen(false)}>{t('catalog')}</NavLink>
-          <NavLink to="/pc-builder" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <NavLink to="/repair" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Wrench size={15} style={{ color: 'var(--primary)' }} />
-            <span>{lang === 'tj' ? 'Сборка ПК' : lang === 'ru' ? 'Сборка ПК' : 'PC Builder'}</span>
+            <span>{lang === 'tj' ? 'Таъмир' : lang === 'ru' ? 'Ремонт' : 'Repair'}</span>
           </NavLink>
           {user?.is_admin && (
             <NavLink to="/admin" onClick={() => setMobileOpen(false)}>{t('adminPanel')}</NavLink>

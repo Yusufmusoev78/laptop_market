@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -18,10 +19,65 @@ import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
 import { BrandOnboarding } from './pages/BrandOnboarding';
 import { MyStats } from './pages/MyStats';
-import { PCBuilder } from './pages/PCBuilder';
+import { RepairPage } from './pages/RepairPage';
 import { AIChatbot } from './components/ui/AIChatbot';
 import { MarketProvider } from './context/MarketContext';
 import './App.css';
+
+function AppContent() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      },
+      {
+        threshold: 0.05,
+        rootMargin: '0px 0px -40px 0px'
+      }
+    );
+
+    // Give DOM a short moment to render before querySelector
+    const timer = setTimeout(() => {
+      const elements = document.querySelectorAll('.scroll-reveal');
+      elements.forEach((el) => observer.observe(el));
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [location.pathname]);
+
+  return (
+    <div className="app-container">
+      <Toaster position="top-right" />
+      <Navbar />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/catalog" element={<Catalog />} />
+          <Route path="/catalog/:id" element={<LaptopDetail />} />
+          <Route path="/catalog/phone/:id" element={<PhoneDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+          <Route path="/brands/new" element={<RequireAuth><BrandOnboarding /></RequireAuth>} />
+          <Route path="/my-stats" element={<RequireAuth><MyStats /></RequireAuth>} />
+          <Route path="/repair" element={<RepairPage />} />
+          <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
+        </Routes>
+      </main>
+      <Footer />
+      <AIChatbot />
+    </div>
+  );
+}
 
 function App() {
   return (
@@ -31,27 +87,7 @@ function App() {
           <BrowserRouter>
             <AuthProvider>
               <NotificationsProvider>
-                <div className="app-container">
-                  <Toaster position="top-right" />
-                  <Navbar />
-                  <main>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/catalog" element={<Catalog />} />
-                      <Route path="/catalog/:id" element={<LaptopDetail />} />
-                      <Route path="/catalog/phone/:id" element={<PhoneDetail />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/signup" element={<Signup />} />
-                      <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-                      <Route path="/brands/new" element={<RequireAuth><BrandOnboarding /></RequireAuth>} />
-                      <Route path="/my-stats" element={<RequireAuth><MyStats /></RequireAuth>} />
-                      <Route path="/pc-builder" element={<PCBuilder />} />
-                      <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
-                    </Routes>
-                  </main>
-                  <Footer />
-                  <AIChatbot />
-                </div>
+                <AppContent />
               </NotificationsProvider>
             </AuthProvider>
           </BrowserRouter>

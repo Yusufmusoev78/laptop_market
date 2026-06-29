@@ -961,3 +961,23 @@ main {
   50% { top: 100%; }
   100% { top: 0%; }
 }
+
+/* ── Scroll Reveal Entrance Animations ──────────────────── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px) scale(0.99);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.scroll-reveal.delay-100 { transition-delay: 0.1s; }
+.scroll-reveal.delay-200 { transition-delay: 0.2s; }
+.scroll-reveal.delay-300 { transition-delay: 0.3s; }
+.scroll-reveal.delay-400 { transition-delay: 0.45s; }
+.scroll-reveal.delay-500 { transition-delay: 0.6s; }

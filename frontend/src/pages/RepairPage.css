@@ -1,0 +1,653 @@
+.repair-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 4rem;
+  color: var(--text-primary);
+}
+
+.repair-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.repair-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.title-icon {
+  color: var(--primary);
+  width: 32px;
+  height: 32px;
+  stroke-width: 1.5;
+}
+
+@keyframes wrench-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-12deg); }
+  75% { transform: rotate(12deg); }
+}
+
+.animate-wrench {
+  animation: wrench-wiggle 2.5s ease-in-out infinite;
+}
+
+.repair-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Layout */
+.repair-main-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* Device Toggle Selector Buttons */
+.repair-device-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.device-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-card);
+}
+
+.device-toggle-btn:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+  color: var(--text-primary);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.05);
+}
+
+.device-toggle-btn.active {
+  background: linear-gradient(135deg, rgba(24, 24, 27, 0.95), rgba(16, 185, 129, 0.1));
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.12);
+}
+
+.device-toggle-btn.btn-laptop {
+  background-image: linear-gradient(rgba(24, 24, 27, 0.92), rgba(24, 24, 27, 0.92)), url('../luxury_laptop_bg.png');
+  background-size: cover;
+}
+
+.device-toggle-btn.btn-phone {
+  background-image: linear-gradient(rgba(24, 24, 27, 0.92), rgba(24, 24, 27, 0.92)), url('../luxury_phone_bg.png');
+  background-size: cover;
+}
+
+.toggle-btn-txt {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-main-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.device-toggle-btn.active .btn-main-title {
+  color: var(--primary);
+}
+
+.btn-sub-title {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+/* Service Calculator card */
+.repair-services-card, .repair-form-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-card);
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  border-left: 3px solid var(--primary);
+  padding-left: 0.6rem;
+  color: var(--text-primary);
+}
+
+.services-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.services-checklist::-webkit-scrollbar {
+  width: 5px;
+}
+.services-checklist::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.service-item-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.service-item-label:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateX(2px);
+}
+
+.service-item-label.checked {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: var(--primary);
+}
+
+.checkbox-control {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.custom-check-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: all 0.15s ease;
+  color: #fff;
+}
+
+.service-item-label.checked .custom-check-box {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.service-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.service-item-label.checked .service-name {
+  color: var(--text-primary);
+}
+
+.service-price {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Total display */
+.repair-total-display {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.price-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-line span:first-child {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.total-val {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.installment-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.inst-icon {
+  animation: pulse 2s infinite;
+}
+
+/* Contact Form styling */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+}
+
+.repair-submit-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.95rem;
+  background: var(--gradient-brand);
+  border: none;
+  border-radius: 12px;
+  color: #000;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+}
+
+.repair-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  filter: brightness(1.05);
+}
+
+.repair-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* AI Diagnostician Chat Module */
+.repair-ai-diagnostician {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  position: sticky;
+  top: 100px;
+}
+
+.ai-diagnostician-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
+}
+
+.ai-spark-icon {
+  color: var(--primary);
+  animation: float 3s ease-in-out infinite;
+}
+
+.ai-diagnostician-header h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.ai-diagnostician-header span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ai-chat-body {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: rgba(9, 9, 11, 0.25);
+}
+
+.ai-chat-body::-webkit-scrollbar {
+  width: 4px;
+}
+.ai-chat-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.ai-chat-msg {
+  display: flex;
+  width: 100%;
+}
+
+.ai-chat-msg.user {
+  justify-content: flex-end;
+}
+
+.msg-bubble {
+  max-width: 82%;
+  padding: 0.85rem 1.1rem;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.ai-chat-msg.user .msg-bubble {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-bottom-right-radius: 4px;
+}
+
+.ai-chat-msg.ai .msg-bubble {
+  background: rgba(16, 185, 129, 0.03);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: var(--text-secondary);
+  border-bottom-left-radius: 4px;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.add-suggested-service-btn {
+  margin-top: 0.65rem;
+  padding: 0.35rem 0.7rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1.5px solid var(--primary);
+  border-radius: 7px;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.add-suggested-service-btn:hover {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.ai-chat-input-wrapper {
+  display: flex;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--border);
+  gap: 0.6rem;
+}
+
+.ai-chat-input-wrapper input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.ai-chat-input-wrapper input:focus {
+  outline: none;
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.chat-send-btn {
+  background: var(--primary);
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.chat-send-btn:hover {
+  transform: scale(1.03);
+  filter: brightness(1.1);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+}
+
+/* Typing indicator dot bouncing */
+.typing-dots {
+  display: flex;
+  gap: 4px;
+  padding: 0.7rem 1rem;
+}
+.typing-dots .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+.typing-dots .dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots .dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1.0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Success Ticket Receipt styling */
+.repair-success-card {
+  max-width: 580px;
+  margin: 2rem auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 2.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+}
+
+.success-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.1);
+  border: 2px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.check-icon-large {
+  color: var(--primary);
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.3));
+}
+
+.repair-success-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.success-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.ticket-details-box {
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.7rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row .lbl {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.detail-row .val {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.detail-row .val.highlight {
+  color: var(--primary);
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+.detail-row .val.capitalize {
+  text-transform: capitalize;
+}
+
+.success-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.success-actions button {
+  padding: 0.85rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.success-actions .btn-primary {
+  background: var(--gradient-brand);
+  border: none;
+  color: #000;
+}
+.success-actions .btn-primary:hover {
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.success-actions .btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.success-actions .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+}
+
+/* Responsive grid rules */
+@media (max-width: 900px) {
+  .repair-main-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .repair-ai-diagnostician {
+    position: static;
+    height: 500px;
+  }
+}
+
+@media (max-width: 580px) {
+  .repair-device-toggle {
+    grid-template-columns: 1fr;
+  }
+  .success-actions {
+    grid-template-columns: 1fr;
+  }
+  .repair-success-card {
+    padding: 1.5rem;
+  }
+}
