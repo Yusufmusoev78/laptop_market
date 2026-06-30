@@ -475,7 +475,8 @@ export const Catalog: React.FC = () => {
                 width: 'min(480px, 100%)', background: 'var(--bg-card)',
                 border: '1px solid var(--border-strong)', borderRadius: 24,
                 padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem',
-                position: 'relative', boxShadow: 'var(--shadow-glow)'
+                position: 'relative', boxShadow: 'var(--shadow-glow)',
+                maxHeight: 'calc(100dvh - 3rem)', overflowY: 'auto'
               }}
             >
               <button
@@ -590,7 +591,8 @@ export const Catalog: React.FC = () => {
                 width: 'min(480px, 100%)', background: 'var(--bg-card)',
                 border: '1px solid var(--border-primary)', borderRadius: 24,
                 padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem',
-                position: 'relative', boxShadow: 'var(--shadow-glow)'
+                position: 'relative', boxShadow: 'var(--shadow-glow)',
+                maxHeight: 'calc(100dvh - 3rem)', overflowY: 'auto'
               }}
             >
               <button
