@@ -410,10 +410,54 @@ main {
 .section-header a:hover { text-decoration: underline; }
 
 /* ── Top Sales / Hot picks row ───────────────────────────── */
+.hot-grid-scroll-container {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+  margin: 0 -0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.hot-grid-scroll-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+}
+
 .hot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 1.2rem;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 1.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.hot-grid > * {
+  flex: 0 0 280px !important;
+}
+
+.carousel-control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-glow);
+}
+
+.carousel-control-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(16, 185, 129, 0.06);
+  transform: translateY(-1px);
+}
+
+.carousel-control-btn:active {
+  transform: translateY(0);
 }
 
 /* ── Catalog layout ──────────────────────────────────────── */

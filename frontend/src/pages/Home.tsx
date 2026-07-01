@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { Truck, ShieldCheck, Coins, ArrowRight, Check, Star, Flame, Laptop as LaptopIcon, Monitor, Apple, Smartphone } from 'lucide-react';
+import { Truck, ShieldCheck, Coins, ArrowRight, Check, Star, Flame, Laptop as LaptopIcon, Monitor, Apple, Smartphone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { LaptopCard } from '../components/ui/LaptopCard';
 import { PhoneCard } from '../components/ui/PhoneCard';
@@ -14,6 +14,14 @@ export const Home: React.FC = () => {
   const { t, lang } = useLang();
   const { marketMode } = useMarket();
   const [hotItems, setHotItems] = useState<(Laptop | Phone)[]>([]);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scrollCarousel = (direction: number) => {
+    if (carouselRef.current) {
+      const scrollAmount = 300 * direction;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   const FEATURES = [
     { icon: Coins,       titleKey: 'somoniPrice' as const,    descKey: 'somoniPriceDesc' as const },
@@ -32,12 +40,12 @@ export const Home: React.FC = () => {
     if (marketMode === 'laptop') {
       getLaptops().then(all => {
         const sorted = [...all].sort((a, b) => b.price_tjs - a.price_tjs);
-        setHotItems(sorted.slice(0, 4));
+        setHotItems(sorted.slice(0, 8));
       }).catch(() => {});
     } else {
       getPhones().then(all => {
         const sorted = [...all].sort((a, b) => b.price_tjs - a.price_tjs);
-        setHotItems(sorted.slice(0, 4));
+        setHotItems(sorted.slice(0, 8));
       }).catch(() => {});
     }
   }, [marketMode]);
@@ -209,18 +217,40 @@ export const Home: React.FC = () => {
             <Flame size={12} />
             {t('popular')}
           </p>
-          <div className="section-header">
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2>{marketMode === 'laptop' ? t('topSales') : t('topSalesPhones')}</h2>
-            <NavLink to="/catalog">{t('viewAll')}</NavLink>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <NavLink to="/catalog" style={{ marginRight: '0.5rem' }}>{t('viewAll')}</NavLink>
+              <div className="carousel-controls" style={{ display: 'flex', gap: '0.4rem' }}>
+                <button
+                  type="button"
+                  className="carousel-control-btn"
+                  onClick={() => scrollCarousel(-1)}
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="carousel-control-btn"
+                  onClick={() => scrollCarousel(1)}
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="hot-grid">
-            {hotItems.map(item => (
-              marketMode === 'laptop' ? (
-                <LaptopCard key={item.id} laptop={item as Laptop} isHot />
-              ) : (
-                <PhoneCard key={item.id} phone={item as Phone} isHot />
-              )
-            ))}
+          <div className="hot-grid-scroll-container" ref={carouselRef}>
+            <div className="hot-grid">
+              {hotItems.map(item => (
+                marketMode === 'laptop' ? (
+                  <LaptopCard key={item.id} laptop={item as Laptop} isHot />
+                ) : (
+                  <PhoneCard key={item.id} phone={item as Phone} isHot />
+                )
+              ))}
+            </div>
           </div>
         </section>
       )}
