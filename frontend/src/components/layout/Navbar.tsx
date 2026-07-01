@@ -61,13 +61,13 @@ export const Navbar: React.FC = () => {
       <div className="market-switcher">
         <button
           className={`market-switch-btn btn-laptop ${marketMode === 'laptop' && location.pathname !== '/repair' ? 'active' : ''}`}
-          onClick={() => { setMarketMode('laptop'); navigate('/catalog'); }}
+          onClick={() => { setMarketMode('laptop'); navigate('/'); }}
         >
           <Laptop size={14} /> <span className="desktop-only">{t('laptops')}</span>
         </button>
         <button
           className={`market-switch-btn btn-phone ${marketMode === 'phone' && location.pathname !== '/repair' ? 'active' : ''}`}
-          onClick={() => { setMarketMode('phone'); navigate('/catalog'); }}
+          onClick={() => { setMarketMode('phone'); navigate('/'); }}
         >
           <Smartphone size={14} /> <span className="desktop-only">{t('phones')}</span>
         </button>
