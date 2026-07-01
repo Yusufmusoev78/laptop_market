@@ -14,6 +14,8 @@ import { updateProfile, ProfileUpdateInput } from '../api/auth';
 import { getMyBrands, Brand } from '../api/brands';
 import { getMyOrders, Order } from '../api/orders';
 import { RepairChatWindow } from '../components/ui/RepairChatWindow';
+import { useNotifications } from '../context/NotificationsContext';
+import toast from 'react-hot-toast';
 import apiClient from '../api/client';
 import './Profile.css';
 
@@ -37,8 +39,9 @@ const sectionVariants = {
 
 export const Profile: React.FC = () => {
   const { user, logout, refreshUser } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { marketMode } = useMarket();
+  const { registerListener } = useNotifications();
   const navigate = useNavigate();
 
   const [myLaptops, setMyLaptops] = useState<LaptopType[]>([]);
@@ -87,6 +90,16 @@ export const Profile: React.FC = () => {
   useEffect(() => {
     if (user) setProfileForm({ email: user.email, phone: user.phone ?? '', address: user.address ?? '', role: user.role });
   }, [user]);
+
+  useEffect(() => {
+    const unsubClaimed = registerListener('repair_ticket_claimed', (data) => {
+      setRepairTickets(prev =>
+        prev.map(t => (t.id === data.repair_id ? { ...t, status: data.status, usto_id: data.usto_id } : t))
+      );
+      toast.success(lang === 'en' ? 'A technician has claimed your repair request!' : 'Усто дархости таъмири шуморо қабул кард!');
+    });
+    return () => unsubClaimed();
+  }, [registerListener, lang]);
 
   const handleProfileChange = (field: keyof ProfileUpdateInput) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -184,7 +197,7 @@ export const Profile: React.FC = () => {
   if (!user) return null;
 
   const avatarLetter = (user.username || user.email).charAt(0).toUpperCase();
-  const { lang } = useLang();
+
   const editLabel = lang === 'tj' ? 'Таҳрири профил' : lang === 'ru' ? 'Редактировать профиль' : 'Edit Profile';
   const cancelLabel = lang === 'tj' ? 'Бекор кардан' : lang === 'ru' ? 'Отмена' : 'Cancel';
 

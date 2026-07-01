@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../api/client';
 import { useLang } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationsContext';
 import { Send, Clock, User, X, MessageSquare, Wrench } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './RepairChatWindow.css';
@@ -34,6 +35,7 @@ export const RepairChatWindow: React.FC<RepairChatWindowProps> = ({
 }) => {
   const { user } = useAuth();
   const { lang } = useLang();
+  const { registerListener } = useNotifications();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -56,10 +58,19 @@ export const RepairChatWindow: React.FC<RepairChatWindowProps> = ({
 
   useEffect(() => {
     loadMessages();
-    // Poll for new messages every 3 seconds
-    const interval = setInterval(loadMessages, 3000);
-    return () => clearInterval(interval);
-  }, [repairId]);
+
+    // Listen to new messages over WS
+    const unsubMessage = registerListener('new_repair_message', (data) => {
+      if (data.repair_id === repairId) {
+        setMessages(prev => {
+          if (prev.some(m => m.id === data.message.id)) return prev;
+          return [...prev, data.message];
+        });
+      }
+    });
+
+    return () => unsubMessage();
+  }, [repairId, registerListener]);
 
   // Scroll to bottom on load or message update
   useEffect(() => {

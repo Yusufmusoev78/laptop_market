@@ -18,7 +18,16 @@ async def create_repair_request(
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """Create a new repair request associated with the logged-in client."""
-    return await repair_service.create(db, obj_in=obj_in, client_id=current_user.id)
+    ticket = await repair_service.create(db, obj_in=obj_in, client_id=current_user.id)
+    
+    # Broadcast new ticket to all online Usto technicians
+    from src.core.ws_manager import manager
+    await manager.broadcast_to_ustos({
+        "type": "new_repair_ticket",
+        "ticket": RepairRead.model_validate(ticket).model_dump()
+    })
+    
+    return ticket
 
 @router.get("/", response_model=List[RepairRead])
 async def read_repair_requests(
@@ -47,7 +56,23 @@ async def claim_repair_ticket(
     """Allow an Usto to claim a pending repair ticket."""
     if current_user.role != "usto":
         raise ForbiddenException("Only Usto masters can claim repair tickets")
-    return await repair_service.claim_repair(db, repair_id=id, usto_id=current_user.id)
+    ticket = await repair_service.claim_repair(db, repair_id=id, usto_id=current_user.id)
+    
+    # Notify client and broadcast ticket assignment to other masters
+    from src.core.ws_manager import manager
+    if ticket.client_id:
+        await manager.send_to_user(ticket.client_id, {
+            "type": "repair_ticket_claimed",
+            "repair_id": id,
+            "usto_id": current_user.id,
+            "status": "in_progress"
+        })
+    await manager.broadcast_to_ustos({
+        "type": "repair_ticket_claimed_broadcast",
+        "repair_id": id
+    })
+    
+    return ticket
 
 @router.get("/{id}/messages", response_model=List[RepairMessageRead])
 async def read_repair_messages(
@@ -79,10 +104,24 @@ async def send_repair_message(
         raise ForbiddenException("You do not have access to this ticket's chat room")
         
     sender_name = current_user.username or current_user.email.split("@")[0]
-    return await repair_service.add_message(
+    new_message = await repair_service.add_message(
         db, 
         repair_id=id, 
         sender_id=current_user.id, 
         sender_name=sender_name, 
         message_text=obj_in.message_text
     )
+    
+    # Broadcast message to client and usto in real-time
+    from src.core.ws_manager import manager
+    message_payload = {
+        "type": "new_repair_message",
+        "repair_id": id,
+        "message": RepairMessageRead.model_validate(new_message).model_dump()
+    }
+    if repair.client_id:
+        await manager.send_to_user(repair.client_id, message_payload)
+    if repair.usto_id:
+        await manager.send_to_user(repair.usto_id, message_payload)
+        
+    return new_message

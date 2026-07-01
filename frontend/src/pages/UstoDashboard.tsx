@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
+import { useNotifications } from '../context/NotificationsContext';
 import { RepairChatWindow } from '../components/ui/RepairChatWindow';
 import { Wrench, Clock, Phone, CheckCircle, MessageSquare, PlusCircle, Play, ShieldAlert, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -26,6 +27,7 @@ interface RepairTicket {
 export const UstoDashboard: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const { lang } = useLang();
+  const { registerListener } = useNotifications();
   const navigate = useNavigate();
 
   const [activeJobs, setActiveJobs] = useState<RepairTicket[]>([]);
@@ -59,6 +61,27 @@ export const UstoDashboard: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, [user]);
+
+  useEffect(() => {
+    if (!user || user.role !== 'usto') return;
+
+    const unsubNewTicket = registerListener('new_repair_ticket', (data) => {
+      setUnclaimedJobs(prev => {
+        if (prev.some(t => t.id === data.ticket.id)) return prev;
+        return [data.ticket, ...prev];
+      });
+      toast.success(lang === 'en' ? 'New repair ticket available!' : 'Дархости нави таъмир пайдо шуд!');
+    });
+
+    const unsubClaimedBroadcast = registerListener('repair_ticket_claimed_broadcast', (data) => {
+      setUnclaimedJobs(prev => prev.filter(t => t.id !== data.repair_id));
+    });
+
+    return () => {
+      unsubNewTicket();
+      unsubClaimedBroadcast();
+    };
+  }, [user, registerListener, lang]);
 
   // Claim a ticket
   const handleClaimTicket = async (ticketId: number) => {

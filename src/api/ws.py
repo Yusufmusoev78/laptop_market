@@ -29,7 +29,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)) -> N
         await websocket.close(code=1008)
         return
 
-    await manager.connect(user.id, user.is_admin, websocket)
+    await manager.connect(user.id, user.is_admin, user.role == "usto", websocket)
     try:
         while True:
             await websocket.receive_text()
