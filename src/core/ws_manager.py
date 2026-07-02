@@ -36,4 +36,9 @@ class ConnectionManager:
         for usto_id in list(self.usto_ids):
             await self.send_to_user(usto_id, message)
 
+    async def broadcast(self, message: dict) -> None:
+        for user_id in list(self.connections.keys()):
+            await self.send_to_user(user_id, message)
+
 manager = ConnectionManager()
+

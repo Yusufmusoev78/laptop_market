@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cpu, HardDrive, MemoryStick, ShieldCheck, ShoppingCart, ArrowLeft, Package, Smartphone, CreditCard, Check, Ruler, Battery, Palette, X } from 'lucide-react';
+import { Cpu, HardDrive, MemoryStick, ShieldCheck, ShoppingCart, ArrowLeft, Package, Smartphone, CreditCard, Check, Ruler, Battery, Palette, X, Heart } from 'lucide-react';
 import { getPhones, Phone } from '../api/phones';
 import { getPhoneGallery } from '../utils/phoneImages';
 import { PhoneCard } from '../components/ui/PhoneCard';
@@ -29,6 +29,50 @@ export const PhoneDetail: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState<string>('alif');
   const [buying, setBuying] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    if (!phone) return;
+    try {
+      const saved = localStorage.getItem('liked-items');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.phones && parsed.phones.includes(phone.id)) {
+          setIsLiked(true);
+        }
+      }
+    } catch {}
+  }, [phone]);
+
+  const toggleLike = () => {
+    if (!phone) return;
+    try {
+      const saved = localStorage.getItem('liked-items') || '{"laptops":[],"phones":[]}';
+      const parsed = JSON.parse(saved);
+      if (!parsed.phones) parsed.phones = [];
+      let nextLiked = false;
+      if (isLiked) {
+        parsed.phones = parsed.phones.filter((id: number) => id !== phone.id);
+        toast.success(
+          lang === 'en' ? 'Removed from favorites' :
+          lang === 'ru' ? 'Удалено из избранного' :
+          'Аз писандидаҳо нест карда шуд'
+        );
+      } else {
+        parsed.phones.push(phone.id);
+        nextLiked = true;
+        toast.success(
+          lang === 'en' ? 'Added to favorites' :
+          lang === 'ru' ? 'Добавлено в избранное' :
+          'Ба писандидаҳо илова карда шуд'
+        );
+      }
+      setIsLiked(nextLiked);
+      localStorage.setItem('liked-items', JSON.stringify(parsed));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+  };
 
   const handleBuy = async () => {
     if (!user) {
@@ -186,7 +230,31 @@ export const PhoneDetail: React.FC = () => {
 
         {/* Right — info */}
         <div className="detail-info">
-          <h1 className="detail-title">{phone.brand} {phone.model_name}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+            <h1 className="detail-title" style={{ margin: 0 }}>{phone.brand} {phone.model_name}</h1>
+            <button
+              type="button"
+              onClick={toggleLike}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                padding: '0.5rem 1rem',
+                border: '1px solid var(--border-strong)',
+                background: 'var(--bg-card)',
+                borderRadius: '12px',
+                color: isLiked ? '#ef4444' : 'var(--text-secondary)',
+                fontWeight: 600,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Heart size={16} fill={isLiked ? '#ef4444' : 'none'} />
+              <span>{isLiked ? (lang === 'en' ? 'Liked' : 'Лайкшуда') : (lang === 'en' ? 'Like' : 'Лайк')}</span>
+            </button>
+          </div>
 
           {phone.description && (
             <p className="detail-desc">{phone.description}</p>

@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, BarChart3, Mail, Building2, Laptop, Package, Plus, Phone, ShoppingCart, Smartphone, Wrench, Loader, MessageSquare } from 'lucide-react';
+import { LogOut, BarChart3, Mail, Building2, Laptop, Package, Plus, Phone, ShoppingCart, Smartphone, Wrench, Loader, MessageSquare, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 import { useMarket } from '../context/MarketContext';
 import { Button } from '../components/ui/Button';
 import { LaptopCard } from '../components/ui/LaptopCard';
 import { PhoneCard } from '../components/ui/PhoneCard';
-import { createLaptop, getMyLaptops, recordSale, Laptop as LaptopType, LaptopCreateInput } from '../api/laptops';
-import { createPhone, getMyPhones, recordPhoneSale, Phone as PhoneType, PhoneCreateInput } from '../api/phones';
+import { createLaptop, getMyLaptops, getLaptops, recordSale, Laptop as LaptopType, LaptopCreateInput } from '../api/laptops';
+import { createPhone, getMyPhones, getPhones, recordPhoneSale, Phone as PhoneType, PhoneCreateInput } from '../api/phones';
 import { updateProfile, ProfileUpdateInput } from '../api/auth';
 import { getMyBrands, Brand } from '../api/brands';
 import { getMyOrders, Order } from '../api/orders';
@@ -73,6 +73,43 @@ export const Profile: React.FC = () => {
   const [loadingRepairs, setLoadingRepairs] = useState(true);
   const [activeChatTicket, setActiveChatTicket] = useState<any | null>(null);
 
+  const [likedLaptops, setLikedLaptops] = useState<LaptopType[]>([]);
+  const [likedPhones, setLikedPhones] = useState<PhoneType[]>([]);
+  const [loadingLiked, setLoadingLiked] = useState(true);
+
+  const loadLikedItems = async () => {
+    try {
+      setLoadingLiked(true);
+      const saved = localStorage.getItem('liked-items');
+      if (!saved) {
+        setLikedLaptops([]);
+        setLikedPhones([]);
+        return;
+      }
+      const parsed = JSON.parse(saved);
+      const likedLaptopIds = parsed.laptops || [];
+      const likedPhoneIds = parsed.phones || [];
+
+      if (likedLaptopIds.length === 0 && likedPhoneIds.length === 0) {
+        setLikedLaptops([]);
+        setLikedPhones([]);
+        return;
+      }
+
+      const [allLaptops, allPhones] = await Promise.all([
+        getLaptops().catch(() => []),
+        getPhones().catch(() => [])
+      ]);
+
+      setLikedLaptops(allLaptops.filter(l => likedLaptopIds.includes(l.id)));
+      setLikedPhones(allPhones.filter(p => likedPhoneIds.includes(p.id)));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingLiked(false);
+    }
+  };
+
   useEffect(() => {
     getMyLaptops().then(setMyLaptops).catch(() => {}).finally(() => setLoadingListings(false));
     getMyPhones().then(setMyPhones).catch(() => {});
@@ -85,6 +122,15 @@ export const Profile: React.FC = () => {
     }).catch(() => {}).finally(() => setLoadingBrands(false));
     getMyOrders().then(setOrders).catch(() => {}).finally(() => setLoadingOrders(false));
     apiClient.get('/repairs/').then(res => setRepairTickets(res.data)).catch(() => {}).finally(() => setLoadingRepairs(false));
+    
+    // Load liked
+    loadLikedItems();
+
+    const handleStorageChange = () => {
+      loadLikedItems();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   useEffect(() => {
@@ -339,6 +385,53 @@ export const Profile: React.FC = () => {
             </div>
           )}
         </div>
+      </motion.div>
+
+      <motion.div className="profile-section" initial="hidden" animate="show" custom={1} variants={sectionVariants}>
+        <h2 className="profile-section-title">
+          <Heart size={16} style={{ color: '#ef4444', marginRight: '8px', verticalAlign: 'middle' }} fill="#ef4444" />
+          {lang === 'tj' ? 'Маҳсулоти писандида (Лайкҳо)' : lang === 'ru' ? 'Понравившиеся товары' : 'Liked Products'}
+        </h2>
+        {loadingLiked ? (
+          <div className="profile-empty">
+            <Loader className="spin-icon" />
+            <p>{lang === 'en' ? 'Loading liked products...' : 'Боркунии рӯйхати писандидаҳо...'}</p>
+          </div>
+        ) : likedLaptops.length === 0 && likedPhones.length === 0 ? (
+          <div className="profile-empty">
+            <Heart size={26} style={{ color: 'var(--text-muted)' }} />
+            <p>{lang === 'en' ? 'No liked products yet. Like computers or phones in the catalog!' : 'Ягон маҳсулот ҳанӯз писанд наомадааст.'}</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {likedLaptops.length > 0 && (
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.8rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Laptop size={14} style={{ color: 'var(--primary)' }} />
+                  {lang === 'en' ? 'Liked Laptops' : 'Ноутбукҳои писандида'}
+                </h3>
+                <div className="my-listings-grid">
+                  {likedLaptops.map(l => (
+                    <LaptopCard key={l.id} laptop={l} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {likedPhones.length > 0 && (
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.8rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Smartphone size={14} style={{ color: 'var(--primary)' }} />
+                  {lang === 'en' ? 'Liked Phones' : 'Телефонҳои писандида'}
+                </h3>
+                <div className="my-listings-grid">
+                  {likedPhones.map(p => (
+                    <PhoneCard key={p.id} phone={p} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </motion.div>
 
       <motion.div className="profile-section" initial="hidden" animate="show" custom={2} variants={sectionVariants}>

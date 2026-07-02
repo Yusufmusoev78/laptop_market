@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cpu, HardDrive, MemoryStick, Zap, ShieldCheck, Keyboard, ShoppingCart, ArrowLeft, Package, Laptop as LaptopIcon, CreditCard, Check, X } from 'lucide-react';
+import { Cpu, HardDrive, MemoryStick, Zap, ShieldCheck, Keyboard, ShoppingCart, ArrowLeft, Package, Laptop as LaptopIcon, CreditCard, Check, X, Heart } from 'lucide-react';
 import { getLaptops, Laptop } from '../api/laptops';
 import { getLaptopGallery } from '../utils/laptopImages';
 import { LaptopCard } from '../components/ui/LaptopCard';
@@ -29,6 +29,50 @@ export const LaptopDetail: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState<string>('alif');
   const [buying, setBuying] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    if (!laptop) return;
+    try {
+      const saved = localStorage.getItem('liked-items');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.laptops && parsed.laptops.includes(laptop.id)) {
+          setIsLiked(true);
+        }
+      }
+    } catch {}
+  }, [laptop]);
+
+  const toggleLike = () => {
+    if (!laptop) return;
+    try {
+      const saved = localStorage.getItem('liked-items') || '{"laptops":[],"phones":[]}';
+      const parsed = JSON.parse(saved);
+      if (!parsed.laptops) parsed.laptops = [];
+      let nextLiked = false;
+      if (isLiked) {
+        parsed.laptops = parsed.laptops.filter((id: number) => id !== laptop.id);
+        toast.success(
+          lang === 'en' ? 'Removed from favorites' :
+          lang === 'ru' ? 'Удалено из избранного' :
+          'Аз писандидаҳо нест карда шуд'
+        );
+      } else {
+        parsed.laptops.push(laptop.id);
+        nextLiked = true;
+        toast.success(
+          lang === 'en' ? 'Added to favorites' :
+          lang === 'ru' ? 'Добавлено в избранное' :
+          'Ба писандидаҳо илова карда шуд'
+        );
+      }
+      setIsLiked(nextLiked);
+      localStorage.setItem('liked-items', JSON.stringify(parsed));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+  };
 
   const handleBuy = async () => {
     if (!user) {
@@ -185,7 +229,31 @@ export const LaptopDetail: React.FC = () => {
 
         {/* Right — info */}
         <div className="detail-info">
-          <h1 className="detail-title">{laptop.brand} {laptop.model_name}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+            <h1 className="detail-title" style={{ margin: 0 }}>{laptop.brand} {laptop.model_name}</h1>
+            <button
+              type="button"
+              onClick={toggleLike}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                padding: '0.5rem 1rem',
+                border: '1px solid var(--border-strong)',
+                background: 'var(--bg-card)',
+                borderRadius: '12px',
+                color: isLiked ? '#ef4444' : 'var(--text-secondary)',
+                fontWeight: 600,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Heart size={16} fill={isLiked ? '#ef4444' : 'none'} />
+              <span>{isLiked ? (lang === 'en' ? 'Liked' : 'Лайкшуда') : (lang === 'en' ? 'Like' : 'Лайк')}</span>
+            </button>
+          </div>
 
           {laptop.description && (
             <p className="detail-desc">{laptop.description}</p>

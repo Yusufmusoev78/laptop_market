@@ -20,9 +20,9 @@ async def create_repair_request(
     """Create a new repair request associated with the logged-in client."""
     ticket = await repair_service.create(db, obj_in=obj_in, client_id=current_user.id)
     
-    # Broadcast new ticket to all online Usto technicians
+    # Broadcast new ticket to all online users
     from src.core.ws_manager import manager
-    await manager.broadcast_to_ustos({
+    await manager.broadcast({
         "type": "new_repair_ticket",
         "ticket": RepairRead.model_validate(ticket).model_dump()
     })
@@ -67,7 +67,7 @@ async def claim_repair_ticket(
             "usto_id": current_user.id,
             "status": "in_progress"
         })
-    await manager.broadcast_to_ustos({
+    await manager.broadcast({
         "type": "repair_ticket_claimed_broadcast",
         "repair_id": id
     })

@@ -80,7 +80,7 @@
 
 /* ── Reset ───────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 
 body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -92,6 +92,7 @@ body {
   background-image: radial-gradient(rgba(197, 168, 128, 0.04) 1px, transparent 1px);
   background-size: 26px 26px;
   transition: background-color 0.3s, color 0.3s;
+  overflow-x: hidden;
 }
 
 /* ── Animations ──────────────────────────────────────────── */

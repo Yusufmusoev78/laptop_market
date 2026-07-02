@@ -8,6 +8,7 @@ import { getPhones, Phone } from '../../api/phones';
 import { getPhoneGallery } from '../../utils/phoneImages';
 import { useLang } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 interface Message {
   sender: 'user' | 'ai';
@@ -25,6 +26,7 @@ export const AIChatbot: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -157,10 +159,40 @@ export const AIChatbot: React.FC = () => {
     }, 800);
   };
 
-  const generateAIResponse = (queryText: string, storeLaptops: Laptop[], storePhones: Phone[], currentLang: string): { text: string; laptops?: Laptop[]; phones?: Phone[] } => {
+  const generateAIResponse = (queryText: string, storeLaptops: Laptop[], storePhones: Phone[], currentLang: string): { text: string; laptops?: Laptop[]; phones?: Phone[]; redirectPath?: string } => {
     const query = queryText.toLowerCase();
 
-    // Check if query is specifically targeting phones
+    // Redirections checking
+    if (query.includes('repair') || query.includes('remont') || query.includes('таъмир') || query.includes('ремонт') || query.includes('усто') || query.includes('usto')) {
+      return {
+        text: currentLang === 'tj' ? 'Ман шуморо ба саҳифаи чати глобалии таъмир равона мекунам...' :
+              currentLang === 'ru' ? 'Перенаправляю вас в чат ремонта...' :
+              'Redirecting you to the repair requests board...',
+        redirectPath: '/repair-feed'
+      };
+    }
+    if (query.includes('builder') || query.includes('сборка') || query.includes('сохтан') || query.includes('pc') || query.includes('пк')) {
+      if (query.includes('build') || query.includes('сборк') || query.includes('сохт') || query.includes('construct') || query.includes('созем')) {
+        return {
+          text: currentLang === 'tj' ? 'Ман шуморо ба саҳифаи сохтани компютер (Builder) равона мекунам...' :
+                currentLang === 'ru' ? 'Перенаправляю вас на конструктор ПК...' :
+                'Redirecting you to the custom PC Builder...',
+          redirectPath: '/pc-builder'
+        };
+      }
+    }
+    if (query.includes('catalog') || query.includes('каталог') || query.includes('маркет') || query.includes('market') || query.includes('купить') || query.includes('харидан')) {
+      const hasBrand = ['apple', 'samsung', 'xiaomi', 'asus', 'lenovo', 'hp', 'dell', 'acer', 'msi'].some(b => query.includes(b));
+      if (!hasBrand) {
+        return {
+          text: currentLang === 'tj' ? 'Ман шуморо ба каталоги маҳсулот равона мекунам...' :
+                currentLang === 'ru' ? 'Перенаправляю вас в каталог товаров...' :
+                'Redirecting you to the catalog...',
+          redirectPath: '/catalog'
+        };
+      }
+    }
+
     const isPhoneQuery = query.includes('phone') || query.includes('телефон') || query.includes('мобил') || query.includes('смартфон') || query.includes('iphone') || query.includes('xiaomi') || query.includes('samsung s24') || query.includes('galaxy') || query.includes('айфон');
 
     // 1. Check direct phone model match
@@ -271,6 +303,65 @@ export const AIChatbot: React.FC = () => {
     return { text: `I am an AI assistant and I can help you find the right laptop or phone. Try asking me:\n\n• "Which phones have the best battery?"\n• "Show me cheap iPhones"\n• "Recommend a gaming laptop"\n• "Do you have Samsung phones in stock?"` };
   };
 
+  const handleSendPrompt = (text: string) => {
+    setMessages(prev => [...prev, { sender: 'user', text }]);
+    setIsTyping(true);
+    setTimeout(() => {
+      const aiReply = generateAIResponse(text, laptops, phones, lang);
+      setMessages(prev => [
+        ...prev, 
+        { sender: 'ai', text: aiReply.text, laptops: aiReply.laptops, phones: aiReply.phones }
+      ]);
+      setIsTyping(false);
+
+      if (aiReply.redirectPath) {
+        setTimeout(() => {
+          setIsOpen(false);
+          navigate(aiReply.redirectPath!);
+        }, 1500);
+      }
+    }, 800);
+  };
+
+  const handleShowLikedItems = () => {
+    setMessages(prev => [...prev, { sender: 'user', text: lang === 'tj' ? 'Маҳсулоти писандидаи ман (Лайкҳо)' : lang === 'ru' ? 'Мои понравившиеся товары' : 'My Liked Products' }]);
+    setIsTyping(true);
+    setTimeout(() => {
+      try {
+        const saved = localStorage.getItem('liked-items');
+        if (!saved) {
+          const emptyText = lang === 'tj' ? 'Шумо ҳанӯз ягон маҳсулот писанд накардаед. Барои писанд кардан дили маҳсулотро пахш намоед.' : 
+                             lang === 'ru' ? 'Вы еще не добавили товары в понравившиеся. Нажмите сердечко на товаре.' : 
+                             'You have not liked any products yet. Click the heart icon on any card!';
+          setMessages(prev => [...prev, { sender: 'ai', text: emptyText }]);
+          setIsTyping(false);
+          return;
+        }
+        const parsed = JSON.parse(saved);
+        const likedLaptopIds = parsed.laptops || [];
+        const likedPhoneIds = parsed.phones || [];
+
+        const matchedL = laptops.filter(l => likedLaptopIds.includes(l.id));
+        const matchedP = phones.filter(p => likedPhoneIds.includes(p.id));
+
+        if (matchedL.length === 0 && matchedP.length === 0) {
+          const emptyText = lang === 'tj' ? 'Шумо ҳанӯз ягон маҳсулот писанд накардаед. Барои писанд кардан дили маҳсулотро пахш намоед.' : 
+                             lang === 'ru' ? 'Вы еще не добавили товары в понравившиеся. Нажмите сердечко на товаре.' : 
+                             'You have not liked any products yet. Click the heart icon on any card!';
+          setMessages(prev => [...prev, { sender: 'ai', text: emptyText }]);
+        } else {
+          const replyText = lang === 'tj' ? 'Маҳсулоти писандидаи шумо:' : 
+                            lang === 'ru' ? 'Ваши понравившиеся товары:' : 
+                            'Your liked products:';
+          setMessages(prev => [...prev, { sender: 'ai', text: replyText, laptops: matchedL, phones: matchedP }]);
+        }
+      } catch (err) {
+        setMessages(prev => [...prev, { sender: 'ai', text: 'Error loading favorites.' }]);
+      }
+      setIsTyping(false);
+    }, 800);
+  };
+
   const handleSend = () => {
     if (!input.trim()) return;
     const userMsg = input.trim();
@@ -285,6 +376,13 @@ export const AIChatbot: React.FC = () => {
         { sender: 'ai', text: aiReply.text, laptops: aiReply.laptops, phones: aiReply.phones }
       ]);
       setIsTyping(false);
+
+      if (aiReply.redirectPath) {
+        setTimeout(() => {
+          setIsOpen(false);
+          navigate(aiReply.redirectPath!);
+        }, 1500);
+      }
     }, 800);
   };
 
@@ -365,11 +463,63 @@ export const AIChatbot: React.FC = () => {
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 999 }}>
+    <div style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 999 }}>
+      {/* Welcome Hover Tooltip balloon shown on load */}
+      <AnimatePresence>
+        {!isOpen && showTooltip && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.9 }}
+            onClick={() => { setIsOpen(true); setShowTooltip(false); }}
+            style={{
+              position: 'absolute',
+              bottom: '4.5rem',
+              left: 0,
+              width: '240px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-primary)',
+              borderRadius: '16px',
+              padding: '0.85rem 1rem',
+              boxShadow: 'var(--shadow-glow)',
+              cursor: 'pointer',
+              zIndex: 1000
+            }}
+          >
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', marginBottom: '0.2rem' }}>
+              <Sparkles size={12} className="animate-pulse" />
+              <span>Somon Comp AI</span>
+              <button 
+                onClick={(e) => { e.stopPropagation(); setShowTooltip(false); }} 
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+              >
+                <X size={12} />
+              </button>
+            </div>
+            <p style={{ fontSize: '0.74rem', margin: 0, color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              {lang === 'tj' ? 'Савол доред? Ёрии техникӣ, интихоби телефон, лаптоп ва таъмир ин ҷост!' : 
+               lang === 'ru' ? 'Есть вопросы? Помогу выбрать ноутбук, телефон или оформить ремонт!' : 
+               'Have questions? I can help choose laptops, phones or submit repair jobs!'}
+            </p>
+            <div style={{
+              position: 'absolute',
+              bottom: '-6px',
+              left: '20px',
+              width: '12px',
+              height: '12px',
+              background: 'var(--bg-card)',
+              borderRight: '1px solid var(--border-primary)',
+              borderBottom: '1px solid var(--border-primary)',
+              transform: 'rotate(45deg)'
+            }} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Floating trigger button */}
       <motion.button
         className="ai-chat-trigger"
-        onClick={() => { setIsOpen(!isOpen); setShowMenu(false); }}
+        onClick={() => { setIsOpen(!isOpen); setShowMenu(false); setShowTooltip(false); }}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.94 }}
         style={{
@@ -395,12 +545,12 @@ export const AIChatbot: React.FC = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            initial={{ opacity: 0, y: 30, x: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, x: -20, scale: 0.95 }}
             transition={{ type: 'spring', damping: 20, stiffness: 240 }}
             style={{
-              position: 'absolute', bottom: '4.5rem', right: 0,
+              position: 'absolute', bottom: '4.5rem', left: 0,
               width: 'min(360px, 90vw)', height: 460,
               background: 'var(--bg-card)', border: '1px solid var(--border-strong)',
               borderRadius: 20, boxShadow: 'var(--shadow-glow)',
@@ -586,6 +736,74 @@ export const AIChatbot: React.FC = () => {
                               }}
                             >
                               {formatText(m.text)}
+
+                              {/* Render quick suggestion prompts inside the first welcome bubble! */}
+                              {m.sender === 'ai' && i === 0 && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.75rem', borderTop: '1px solid var(--border)', paddingTop: '0.6rem' }}>
+                                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.1rem' }}>
+                                    {lang === 'tj' ? 'Амалҳои зуд:' : lang === 'ru' ? 'Быстрые действия:' : 'Quick Prompts:'}
+                                  </span>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                                    {[
+                                      {
+                                        label: lang === 'tj' ? '💻 Ноутбуки Бозӣ (RTX)' : lang === 'ru' ? '💻 Игровые RTX' : '💻 Gaming Laptops (RTX)',
+                                        action: () => handleSendPrompt('Gaming laptops')
+                                      },
+                                      {
+                                        label: lang === 'tj' ? '💰 Ноутбук то 8000 TJS' : lang === 'ru' ? '💰 До 8000 TJS' : '💰 Laptops under 8000',
+                                        action: () => handleSendPrompt('Budget laptops')
+                                      },
+                                      {
+                                        label: lang === 'tj' ? '📱 Смартфонҳои Samsung' : lang === 'ru' ? '📱 Samsung Galaxy' : '📱 Samsung Phones',
+                                        action: () => handleSendPrompt('Samsung')
+                                      },
+                                      {
+                                        label: lang === 'tj' ? '🍎 Телефони iPhone' : lang === 'ru' ? '🍎 Apple iPhone' : '🍎 Apple iPhones',
+                                        action: () => handleSendPrompt('Apple')
+                                      },
+                                      {
+                                        label: lang === 'tj' ? '🛠️ Фармоиши Таъмири Дастгоҳ' : lang === 'ru' ? '🛠️ Ремонт техники' : '🛠️ Device Repairs',
+                                        action: () => {
+                                          setIsOpen(false);
+                                          navigate('/repair-feed');
+                                          toast.success(lang === 'en' ? 'Opening Repair chat feed...' : 'Гузариш ба чати таъмири дастгоҳҳо...');
+                                        }
+                                      },
+                                      {
+                                        label: lang === 'tj' ? '🖥️ Сохтани PC (Builder)' : lang === 'ru' ? '🖥️ Конструктор ПК' : '🖥️ PC Builder',
+                                        action: () => {
+                                          setIsOpen(false);
+                                          navigate('/pc-builder');
+                                        }
+                                      },
+                                      {
+                                        label: lang === 'tj' ? '💖 Лайкшудаҳои ман' : lang === 'ru' ? '💖 Мои лайки' : '💖 My Liked Products',
+                                        action: () => handleShowLikedItems()
+                                      }
+                                    ].map((opt, idx) => (
+                                      <button
+                                        key={idx}
+                                        onClick={opt.action}
+                                        style={{
+                                          padding: '0.35rem 0.55rem',
+                                          background: 'var(--bg-card)',
+                                          border: '1px solid var(--border-strong)',
+                                          borderRadius: '8px',
+                                          fontSize: '0.72rem',
+                                          fontWeight: 600,
+                                          color: 'var(--text-primary)',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.15s ease',
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.color = 'var(--primary)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                                      >
+                                        {opt.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
 

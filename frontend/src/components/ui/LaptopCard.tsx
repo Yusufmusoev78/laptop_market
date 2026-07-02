@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
-import { Cpu, HardDrive, MemoryStick, Zap, ShoppingCart, Image as ImageIcon, Laptop, Flame } from 'lucide-react';
+import { Cpu, HardDrive, MemoryStick, Zap, ShoppingCart, Image as ImageIcon, Laptop, Flame, Heart } from 'lucide-react';
 import { Laptop as LaptopType } from '../../api/laptops';
 import { getLaptopGallery } from '../../utils/laptopImages';
 import { useLang } from '../../context/LanguageContext';
+import toast from 'react-hot-toast';
 import './LaptopCard.css';
 
 interface LaptopCardProps {
@@ -20,9 +21,52 @@ const CYCLE_MS = 850;
 
 export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
   const navigate = useNavigate();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const inStock = laptop.stock_quantity > 0;
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('liked-items');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.laptops && parsed.laptops.includes(laptop.id)) {
+          setIsLiked(true);
+        }
+      }
+    } catch {}
+  }, [laptop.id]);
+
+  const toggleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const saved = localStorage.getItem('liked-items') || '{"laptops":[],"phones":[]}';
+      const parsed = JSON.parse(saved);
+      if (!parsed.laptops) parsed.laptops = [];
+      let nextLiked = false;
+      if (isLiked) {
+        parsed.laptops = parsed.laptops.filter((id: number) => id !== laptop.id);
+        toast.success(
+          lang === 'en' ? 'Removed from favorites' :
+          lang === 'ru' ? 'Удалено из избранного' :
+          'Аз писандидаҳо нест карда шуд'
+        );
+      } else {
+        parsed.laptops.push(laptop.id);
+        nextLiked = true;
+        toast.success(
+          lang === 'en' ? 'Added to favorites' :
+          lang === 'ru' ? 'Добавлено в избранное' :
+          'Ба писандидаҳо илова карда шуд'
+        );
+      }
+      setIsLiked(nextLiked);
+      localStorage.setItem('liked-items', JSON.stringify(parsed));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+  };
 
   const gallery = useMemo(
     () => getLaptopGallery(laptop.brand, laptop.model_name, 400),
@@ -112,6 +156,32 @@ export const LaptopCard: React.FC<LaptopCardProps> = ({ laptop, isHot }) => {
             loading="lazy"
           />
         ))}
+
+        <button
+          type="button"
+          onClick={toggleLike}
+          className={`card-like-btn ${isLiked ? 'liked' : ''}`}
+          style={{
+            position: 'absolute',
+            bottom: '0.75rem',
+            right: '0.75rem',
+            zIndex: 10,
+            background: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(4px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            borderRadius: '50%',
+            width: '30px',
+            height: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: isLiked ? '#ef4444' : '#fff',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <Heart size={15} fill={isLiked ? '#ef4444' : 'none'} />
+        </button>
 
         <span className="laptop-brand-badge">{laptop.brand}</span>
 

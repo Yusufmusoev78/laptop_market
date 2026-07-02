@@ -20,6 +20,7 @@ import { Admin } from './pages/Admin';
 import { BrandOnboarding } from './pages/BrandOnboarding';
 import { MyStats } from './pages/MyStats';
 import { RepairPage } from './pages/RepairPage';
+import { RepairFeed } from './pages/RepairFeed';
 import { UstoDashboard } from './pages/UstoDashboard';
 import { AIChatbot } from './components/ui/AIChatbot';
 import { MarketProvider } from './context/MarketContext';
@@ -70,7 +71,9 @@ function AppContent() {
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
           <Route path="/brands/new" element={<RequireAuth><BrandOnboarding /></RequireAuth>} />
           <Route path="/my-stats" element={<RequireAuth><MyStats /></RequireAuth>} />
-          <Route path="/repair" element={<RepairPage />} />
+          <Route path="/repair" element={<RepairFeed />} />
+          <Route path="/repair-feed" element={<RepairFeed />} />
+          <Route path="/repair-calculator" element={<RepairPage />} />
           <Route path="/repair-dashboard" element={<RequireAuth><UstoDashboard /></RequireAuth>} />
           <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
         </Routes>

@@ -60,20 +60,20 @@ export const Navbar: React.FC = () => {
 
       <div className="market-switcher">
         <button
-          className={`market-switch-btn btn-laptop ${marketMode === 'laptop' && location.pathname !== '/repair' ? 'active' : ''}`}
+          className={`market-switch-btn btn-laptop ${marketMode === 'laptop' && !location.pathname.startsWith('/repair') ? 'active' : ''}`}
           onClick={() => { setMarketMode('laptop'); navigate('/'); }}
         >
           <Laptop size={14} /> <span className="desktop-only">{t('laptops')}</span>
         </button>
         <button
-          className={`market-switch-btn btn-phone ${marketMode === 'phone' && location.pathname !== '/repair' ? 'active' : ''}`}
+          className={`market-switch-btn btn-phone ${marketMode === 'phone' && !location.pathname.startsWith('/repair') ? 'active' : ''}`}
           onClick={() => { setMarketMode('phone'); navigate('/'); }}
         >
           <Smartphone size={14} /> <span className="desktop-only">{t('phones')}</span>
         </button>
         <button
-          className={`market-switch-btn btn-pc-builder ${location.pathname === '/repair' ? 'active' : ''}`}
-          onClick={() => navigate('/repair')}
+          className={`market-switch-btn btn-pc-builder ${location.pathname.startsWith('/repair') ? 'active' : ''}`}
+          onClick={() => navigate('/repair-feed')}
         >
           <Wrench size={14} /> <span className="desktop-only">{lang === 'tj' ? 'Таъмир' : lang === 'ru' ? 'Ремонт' : 'Repair'}</span>
         </button>
